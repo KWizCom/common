@@ -17,7 +17,7 @@
     "watch": "tsc -watch",
     "build": "npm run test && tsc",
     "build-explain": "tsc --explainFiles",
-    "build-link": "tsc && npm link",
+    "create-link": "npm link",
     "test": "node --loader tsx --test src",
     "npm-v-patch": "npm version patch",
     "npm-v-major": "npm version major",

@@ -244,34 +244,51 @@ export function registerModernThemeChanged(handler: () => void) {
     addEventHandler(document, "kwOnThemeChanged", handler);
 }
 
+interface iObserverHandlerBase {
+    handler?: () => void;
+    key?: string;
+    ignoreSubTree?: boolean;
+};
+interface iObserverHandlerWithKey extends iObserverHandlerBase {
+    key: string;
+}
+interface iObserverHandlerWithHandler extends iObserverHandlerBase {
+    handler: () => void;
+}
+interface iObserverHandlerWithKeyAndHandler extends iObserverHandlerBase {
+    handler: () => void;
+    key: string;
+}
+
 type DOMChangedObserverDef = {
     ele: HTMLElement;
-    callbacks: { handler: () => void; key?: string; }[];
+    ignoreSubTree: boolean;
+    callbacks: iObserverHandlerWithHandler[];
     disconnect?: () => void;
 };
 let _DOMChangedObserverDefs: DOMChangedObserverDef[] = [];
 
-function _getDOMChangedObserverDef(ele: HTMLElement) {
+function _getDOMChangedObserverDef(ele: HTMLElement, ignoreSubTree: boolean) {
     if (!isElement(ele)) {
         return null;
     }
     let existingDef = _DOMChangedObserverDefs.filter((observer) => {
         let observerEle = observer.ele;
-        return isElement(observerEle) && observerEle.isSameNode(ele);
+        return observer.ignoreSubTree === ignoreSubTree && isElement(observerEle) && observerEle.isSameNode(ele);
     })[0];
     return existingDef;
 }
 
-function _getDomObserverCallbackInfo(callbackOrHandler: (() => void) | { key: string; handler?: () => void; }) {
+function _getDomObserverCallbackInfo(callbackOrHandler: (() => void) | iObserverHandlerWithKey) {
     return {
         handler: isNullOrUndefined(callbackOrHandler) ? null : isFunction(callbackOrHandler) ? callbackOrHandler : callbackOrHandler.handler,
-        key: isNullOrUndefined(callbackOrHandler) || isFunction(callbackOrHandler) ? null : callbackOrHandler.key
+        key: isNullOrUndefined(callbackOrHandler) || isFunction(callbackOrHandler) ? null : callbackOrHandler.key,
+        ignoreSubTree: isNullOrUndefined(callbackOrHandler) || isFunction(callbackOrHandler) ? false : callbackOrHandler.ignoreSubTree === true
     };
 
 }
 
-export function registerDOMChangedObserver(callbackOrHandler: (() => void) | { key: string; handler: () => void; },
-    ele?: HTMLElement) {
+export function registerDOMChangedObserver(callbackOrHandler: (() => void) | iObserverHandlerWithKeyAndHandler, ele?: HTMLElement) {
     let callbackInfo = _getDomObserverCallbackInfo(callbackOrHandler);
     if (!isFunction(callbackInfo.handler)) {
         return;
@@ -297,7 +314,7 @@ export function registerDOMChangedObserver(callbackOrHandler: (() => void) | { k
     }
 
     registerDOMContentLoadedListener(win.document).then(() => {
-        let existingDef = _getDOMChangedObserverDef(ele);
+        let existingDef = _getDOMChangedObserverDef(ele, callbackInfo.ignoreSubTree);
 
         if (!isNullOrUndefined(existingDef)) {
             let existingCallbackIndex = isNullOrEmptyString(callbackInfo.key) ? -1 : firstIndexOf(existingDef.callbacks, cb => cb.key === callbackInfo.key);
@@ -313,6 +330,7 @@ export function registerDOMChangedObserver(callbackOrHandler: (() => void) | { k
 
         let newDef: DOMChangedObserverDef = {
             ele: ele,
+            ignoreSubTree: callbackInfo.ignoreSubTree,
             callbacks: [callbackInfo]
         };
 
@@ -340,7 +358,7 @@ export function registerDOMChangedObserver(callbackOrHandler: (() => void) | { k
 
             observer.observe(ele, {
                 childList: true,
-                subtree: true,
+                subtree: callbackInfo.ignoreSubTree === true ? false : true,
                 attributes: false,
                 characterData: false
             });
@@ -367,7 +385,7 @@ export function registerDOMChangedObserver(callbackOrHandler: (() => void) | { k
     });
 }
 
-export function removeDOMChangedObserver(callbackOrHandler: (() => void) | { key: string; handler?: () => void; }, ele?: HTMLElement) {
+export function removeDOMChangedObserver(callbackOrHandler: (() => void) | iObserverHandlerWithKey, ele?: HTMLElement) {
     let callbackInfo = _getDomObserverCallbackInfo(callbackOrHandler);
     if (!isFunction(callbackInfo.handler) && isNullOrEmptyString(callbackInfo.key)) {
         return;//need function or key to remove
@@ -393,7 +411,7 @@ export function removeDOMChangedObserver(callbackOrHandler: (() => void) | { key
     }
 
     registerDOMContentLoadedListener(win.document).then(() => {
-        let existingDef = _getDOMChangedObserverDef(ele);
+        let existingDef = _getDOMChangedObserverDef(ele, callbackInfo.ignoreSubTree);
 
         if (isNullOrUndefined(existingDef) || !isElement(existingDef.ele)) {
             return;
