@@ -2,14 +2,10 @@ import { IUserInfo, PrincipalType, contentTypes, firstIndexOf, jsonTypes } from 
 import { GetJson } from "../rest";
 import { EnsureUser } from "./user";
 
-interface IPeoplePickerUserItem {
-    /**
-     * LoginName or Id of the principal in the site.
-     */
+export interface iPeoplePickerUserItem {
+    /** LoginName or Id of the principal in the site. */
     id: string;
-    /**
-     * LoginName of the principal.
-     */
+    /** LoginName of the principal. */
     loginName: string;
     imageUrl: string;
     imageInitials: string;
@@ -72,7 +68,7 @@ export class SPPeopleSearchService {
     /**
      * Search person by its email or login name
      */
-    public async searchPersonByEmailOrLogin(email: string, principalTypes: PrincipalType[], siteUrl: string = null, groupId: number = null, ensureUser: boolean = false): Promise<IPeoplePickerUserItem> {
+    public async searchPersonByEmailOrLogin(email: string, principalTypes: PrincipalType[], siteUrl: string = null, groupId: number = null, ensureUser: boolean = false): Promise<iPeoplePickerUserItem> {
         // if (Environment.type === EnvironmentType.Local) {
         //     // If the running environment is local, load the data from the mock
         //     const mockUsers = await this.searchPeopleFromMock(email);
@@ -86,7 +82,7 @@ export class SPPeopleSearchService {
     /**
      * Search All Users from the SharePoint People database
      */
-    public async searchPeople(query: string, maximumSuggestions: number, principalTypes: PrincipalType[], siteUrl: string = null, groupId: number = null, ensureUser: boolean = false): Promise<IPeoplePickerUserItem[]> {
+    public async searchPeople(query: string, maximumSuggestions: number, principalTypes: PrincipalType[], siteUrl: string = null, groupId: number = null, ensureUser: boolean = false): Promise<iPeoplePickerUserItem[]> {
         // if (Environment.type === EnvironmentType.Local) {
         //     // If the running environment is local, load the data from the mock
         //     return this.searchPeopleFromMock(query);
@@ -98,7 +94,7 @@ export class SPPeopleSearchService {
     /**
      * Tenant search
      */
-    private async searchTenant(siteUrl: string, query: string, maximumSuggestions: number, principalTypes: PrincipalType[], ensureUser: boolean, groupId: number): Promise<IPeoplePickerUserItem[]> {
+    private async searchTenant(siteUrl: string, query: string, maximumSuggestions: number, principalTypes: PrincipalType[], ensureUser: boolean, groupId: number): Promise<iPeoplePickerUserItem[]> {
         try {
             // If the running env is SharePoint, loads from the peoplepicker web service
             const userRequestUrl: string = `${siteUrl || this.context.siteUrl}/_api/SP.UI.ApplicationPages.ClientPeoplePickerWebServiceInterface.clientPeoplePickerSearchUser`;
@@ -171,7 +167,7 @@ export class SPPeopleSearchService {
                                 secondaryText: element.EntityData.Email || element.Description, // email
                                 tertiaryText: "", // status
                                 optionalText: "" // anything
-                            } as IPeoplePickerUserItem;
+                            } as iPeoplePickerUserItem;
                         case 'SecGroup':
                             return {
                                 id: element.Key,
@@ -179,7 +175,7 @@ export class SPPeopleSearchService {
                                 imageInitials: this.getFullNameInitials(element.DisplayText),
                                 text: element.DisplayText,
                                 secondaryText: element.ProviderName
-                            } as IPeoplePickerUserItem;
+                            } as iPeoplePickerUserItem;
                         case 'FormsRole':
                             return {
                                 id: element.Key,
@@ -187,7 +183,7 @@ export class SPPeopleSearchService {
                                 imageInitials: this.getFullNameInitials(element.DisplayText),
                                 text: element.DisplayText,
                                 secondaryText: element.ProviderName
-                            } as IPeoplePickerUserItem;
+                            } as iPeoplePickerUserItem;
                         default:
                             return {
                                 id: element.EntityData.SPGroupID,
@@ -195,7 +191,7 @@ export class SPPeopleSearchService {
                                 imageInitials: this.getFullNameInitials(element.DisplayText),
                                 text: element.DisplayText,
                                 secondaryText: element.EntityData.AccountName
-                            } as IPeoplePickerUserItem;
+                            } as iPeoplePickerUserItem;
                     }
                 });
 

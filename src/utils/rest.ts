@@ -463,3 +463,10 @@ export function GetJson<T>(url: string, body?: IRequestBody, options?: IRestOpti
         return Promise.reject({ message: "an error occured" });
     }
 }
+
+/** if you detected a change that invalidates all requests stored in memory - this will clear all in-memory cached results */
+export function GetJsonClearCache() {
+    Object.keys(_cachedResults).forEach(key => {
+        delete _cachedResults[key];
+    });
+}

@@ -1,8 +1,11 @@
 import { BaseTypes, FieldTypeAsString, FieldTypes, GeListItemsFoldersBehaviour, IDictionary, IFieldInfo, IFieldInfoEX, IFieldInfoExHash, IFieldJsonSchema, IFieldLookupInfo, IListWorkflowAssociation, IRestItem, IRestOptions, ISPEventReceiver, ListExperienceOptions, ListTemplateTypes, NormalizeListName, PageType, PushNoDuplicate, SPBasePermissionKind, SPBasePermissions, SafeIfElse, SchemaXmlToJson, contentTypes, extendFieldInfo, firstOrNull, iContentType, iList, iListView, isBoolean, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isPromise, isString, isValidGuid, jsonStringify, jsonTypes, makeServerRelativeUrl, makeUniqueArray, normalizeGuid, normalizeUrl, toHash } from "../_dependencies";
+import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl, LIST_EXPAND, LIST_SELECT } from "./common";
 import { __fixGetListItemsResults } from "./listutils/common";
 import { GetContentTypes, GetContentTypesSync, GetListsSync } from "./web";
+
+const logger = ConsoleLogger.get("SharePoint.Rest.List");
 
 /** returns /_api/web/lists/getById() or /_api/web/lists/getByTitle() */
 export function GetListRestUrl(siteUrl: string, listIdOrTitle: string): string {
@@ -1141,4 +1144,145 @@ export async function CreateList(siteUrl: string, info: {
     let newList = (await GetJson<{ d: iCreateListResult }>(url, jsonStringify(body))).d;
     normalizeGuid(newList.Id);
     return newList;
+}
+
+export async function SearchList(siteUrl: string, listIdOrTitle: string, query: string) {
+    let listId = GetListId(siteUrl, listIdOrTitle);
+    let url = `${GetRestBaseUrl(siteUrl)}/search/query?querytext='(${query}*)'&querytemplate='{searchTerms} (NormListID:${listId})'`;
+
+    try {
+        const result = await GetJson<{
+            ElapsedTime: number,
+            PrimaryQueryResult: {
+                CustomResults: [];
+                QueryId: string;//"7fdf01b1-f6f0-4d42-b046-d9db22597084",
+                QueryRuleId: string;// "00000000-0000-0000-0000-000000000000",
+                RefinementResults: null,
+                RelevantResults: {
+                    RowCount: number,
+                    Table: {
+                        Rows: {
+                            Cells: {
+                                Key:
+                                /** "1989637621861439888" "Edm.Int64" */
+                                "WorkId"
+                                /** "1000.1073372","Edm.Double" */
+                                | "Rank"
+                                /** "sample md as text","Edm.String" */
+                                | "Title"
+                                /** "Shai Petel", "Edm.String" */
+                                | "Author"
+                                /** "91", "Edm.Int64" */
+                                | "Size"
+                                /** "https://kwizcom.sharepoint.com/sites/s/cms/CMSPages/sample md as text.txt", "Edm.String" */
+                                | "Path"
+                                /** null, "Null" */
+                                | "Description"
+                                /** "# hello world! - bullet - bullet | table | col | | ----- | ---- | |table |col | ", "Edm.String" */
+                                | "HitHighlightedSummary"
+                                /** "https://kwizcom.sharepoint.com/_api/v2.1/drives/b!8NAeO-mocUWbgyMTqcM0Mfh8XKPhn7xOhhMrO5KfJjBs_gXb9j8ZRaLxuppgj0Uk/items/01OBXW4FLU6G4LIT7AX5BK3MXHDICVTIOT/thumbnails/0/c400x99999/content?prefer=noRedirect", "Edm.String" */
+                                | "PictureThumbnailURL"
+                                /** null,"Null" */
+                                | "ServerRedirectedURL"
+                                /** null,"Null" */
+                                | "ServerRedirectedEmbedURL"
+                                /** null,"Null" */
+                                | "ServerRedirectedPreviewURL"
+                                /** "txt","Edm.String" */
+                                | "FileExtension"
+                                /** "0x010100CB212272F1372446A2423F0A2BEA12B8", "Edm.String" */
+                                | "ContentTypeId"
+                                /** "https://kwizcom.sharepoint.com/sites/s/cms/CMSPages/Forms/AllItems.aspx","Edm.String" */
+                                | "ParentLink"
+                                /** "1","Edm.Int64" */
+                                | "ViewsLifeTime"
+                                /** "1","Edm.Int64" */
+                                | "ViewsRecent"
+                                /** "2024-02-22T18:35:48.0000000Z","Edm.DateTime" */
+                                | "LastModifiedTime"
+                                /** "txt","Edm.String" */
+                                | "FileType"
+                                /** "1989637621861439888","Edm.Int64" */
+                                | "DocId"
+                                /** "https://kwizcom.sharepoint.com/sites/s/cms","Edm.String" */
+                                | "SPWebUrl"
+                                /** "{b4b8f174-e04f-42bf-adb2-e71a0559a1d3}","Edm.String" */
+                                | "UniqueId"
+                                /** "3b1ed0f0-a8e9-4571-9b83-2313a9c33431","Edm.String" */
+                                | "SiteId"
+                                /** "a35c7cf8-9fe1-4ebc-8613-2b3b929f2630","Edm.String" */
+                                | "WebId"
+                                /** "db05fe6c-3ff6-4519-a2f1-ba9a608f4524","Edm.String" */
+                                | "ListId"
+                                /** "https://kwizcom.sharepoint.com/sites/s/cms/CMSPages/sample md as text.txt","Edm.String" */
+                                | "OriginalPath"
+                                ;
+                                Value: string,
+                                ValueType: "Edm.Int64" | "Edm.Double" | "Edm.String" | "Edm.DateTime" | "Null"
+                            }[]
+                        }[]
+                    },
+                    TotalRows: number,
+                    TotalRowsIncludingDuplicates: number
+                }
+            },
+        }>(url, null, { jsonMetadata: jsonTypes.nometadata });
+        logger.json(result.PrimaryQueryResult.RelevantResults, `search ${query}`);
+        let rows = result.PrimaryQueryResult.RelevantResults.Table.Rows;
+
+        const mapped: (IDictionary<string | Date | number> & {
+            WorkId?: number;
+            Rank?: number;
+            Title?: string;
+            Author?: string;
+            Size?: number;
+            Path?: string;
+            Description?: string;
+            HitHighlightedSummary?: string;
+            PictureThumbnailURL?: string;
+            ServerRedirectedURL?: string;
+            ServerRedirectedEmbedURL?: string;
+            ServerRedirectedPreviewURL?: string;
+            FileExtension?: string;
+            ContentTypeId?: string;
+            ParentLink?: string;
+            ViewsLifeTime?: number;
+            ViewsRecent?: number;
+            LastModifiedTime?: Date;
+            FileType?: string;
+            DocId?: number;
+            SPWebUrl?: string;
+            UniqueId?: string;
+            SiteId?: string;
+            WebId?: string;
+            ListId?: string;
+            OriginalPath?: string;
+            $itemId?: number;
+        })[] = [];
+        rows.forEach(r => {
+            try {
+                const rowValues: IDictionary<string | Date | number> = {};
+                r.Cells.forEach(cell => {
+                    rowValues[cell.Key] = cell.ValueType === "Edm.Int64" || cell.ValueType === "Edm.Double"
+                        ? parseInt(cell.Value, 10)
+                        : cell.ValueType === "Edm.DateTime"
+                            ? new Date(cell.Value)
+                            : cell.ValueType === "Null"
+                                ? ""
+                                : cell.Value
+                });
+                let resultPath = isNullOrEmptyString(rowValues.Path) ? "" : (rowValues.Path as string).toLowerCase();
+                let indexOfId = resultPath.toLowerCase().indexOf("id=");
+                let itemId = indexOfId >= 0 ? parseInt(resultPath.slice(indexOfId + 3)) : -1;
+                if (itemId >= 0)
+                    rowValues.$itemId = itemId;
+                mapped.push(rowValues);
+            } catch (e) { return null; }
+        });
+
+        return mapped;
+    } catch (e) {
+        logger.error(e);
+        return [];
+    }
 }

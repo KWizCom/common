@@ -4,7 +4,7 @@ import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync } from "../rest";
 import { GetFieldNameFromRawValues, GetSiteUrl, __getSPRestErrorData, getFieldNameForUpdate } from "./common";
 import { GetList, GetListFields, GetListFieldsAsHash, GetListRestUrl } from "./list";
-import { GetUserSync } from "./user";
+import { GetUser, GetUserSync } from "./user";
 
 const logger = ConsoleLogger.get("SharePoint.Rest.Item");
 
@@ -453,4 +453,57 @@ export function GetSPFieldValueAsText(value: any, field: IFieldInfoEX): string[]
         });
     }
     return textResults;
+}
+
+/** set an existing item system info: author, editor, created and modified dates */
+export async function SetItemCreatedModifiedInfo(siteUrl: string, listIdOrTitle: string, itemId: number,
+    updates: { Created?: string | Date; Modified?: string | Date; AuthorId?: number; EditorId?: number; }) {
+
+    let updateValues: IDictionary<string> = {};
+
+    let fields = updates && Object.keys(updates) || [];
+    if (!isNullOrEmptyString(updates.Created))//date must be yyyy-MM-dd hh:mm:ss
+        updateValues.Created = (isString(updates.Created) ? new Date(updates.Created) : updates.Created).toISOString().replace('T', ' ').split('.')[0];
+    if (!isNullOrEmptyString(updates.Modified))
+        updateValues.Modified = (isString(updates.Modified) ? new Date(updates.Modified) : updates.Modified).toISOString().replace('T', ' ').split('.')[0];
+    if (updates.AuthorId > 0) {
+        let asUser = await GetUser(siteUrl, updates.AuthorId);
+        updateValues.AuthorId = `[{'Key':'${asUser.UserPrincipalName}'}]`;//[{'Key':'i:0#.f|membership|user@Tenant.onmicrosoft.com'}]
+    }
+    if (updates.EditorId > 0) {
+        let asUser = await GetUser(siteUrl, updates.EditorId);
+        updateValues.AuthorId = `[{'Key':'${asUser.UserPrincipalName}'}]`;//[{'Key':'i:0#.f|membership|user@Tenant.onmicrosoft.com'}]
+    }
+
+    if (isNullOrEmptyArray(fields)) return [];
+
+    siteUrl = GetSiteUrl(siteUrl);
+
+    let url = GetListRestUrl(siteUrl, listIdOrTitle) + `/items(${itemId})/ValidateUpdateListItem()`;
+
+    try {
+        let result = await GetJson<{
+            d: {
+                ValidateUpdateListItem: {
+                    results: {
+                        ErrorCode: number;
+                        ErrorMEssage?: string;
+                        FieldName: string;
+                        FieldValue: string;
+                        HasException: boolean;
+                        ItemId: number;
+                    }[];
+                };
+            };
+        }>(url, JSON.stringify({
+            formValues: fields.map(field => ({
+                FieldName: field,
+                FieldValue: updateValues[field]
+            }))
+        }), { method: "POST" });
+        return result && result.d && result.d.ValidateUpdateListItem.results.map(v => ({ field: v.FieldName, error: v.ErrorMEssage })) || [];
+    } catch (e) {
+        logger.error(`Error updating values ${e}`);
+    }
+    return fields.map(f => ({ field: f, error: 'Unspecified update error' }));
 }

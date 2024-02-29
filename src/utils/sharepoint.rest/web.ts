@@ -1,4 +1,4 @@
-import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonTypes, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
+import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IGroupInfo, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { toIsoDateFormat } from "../date";
 import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, shortLocalCache, weeekLongLocalCache } from "../rest";
@@ -636,6 +636,18 @@ export async function GetWebRoleDefinitions(siteUrl: string): Promise<IRestRoleD
         .catch<IRestRoleDefinition[]>(() => []);
 }
 
+export interface iRoleAssignment {
+    Member: IGroupInfo | IUserInfo,
+    RoleDefinitionBindings: IRestRoleDefinition[],
+    PrincipalId: 14
+};
+/** get roles for site or list */
+export async function GetRoleAssignments(siteUrl: string, listIdOrTitle?: string) {
+    const url = `${isNullOrEmptyString(listIdOrTitle) ? GetRestBaseUrl(siteUrl) + "/web" : GetListRestUrl(siteUrl, listIdOrTitle)}/roleassignments?$expand=Member/users,RoleDefinitionBindings`;
+    const result = await GetJson<{ value: iRoleAssignment[] }>(url, undefined, { jsonMetadata: jsonTypes.nometadata });
+    return result.value;
+}
+
 /** Web sub webs for the selected site */
 export async function GetSubWebs(siteUrl: string, options?: { allowAppWebs?: boolean; }): Promise<IWebInfo[]> {
     return GetJson<{ d: { results: IWebInfo[]; }; }>(GetRestBaseUrl(siteUrl) + `/web/webs${options && options.allowAppWebs ? "" : "&$filter=WebTemplate ne 'APP'"}`, null,
@@ -1028,4 +1040,14 @@ export async function AssignWebPermission(siteUrl: string, principalId: number, 
 export async function RemoveWebPermission(siteUrl: string, principalId: number, roleId: number) {
     let url = `${GetRestBaseUrl(siteUrl)}/web/roleassignments/removeroleassignment(principalid=${principalId},roleDefId=${roleId})`;
     await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+}
+
+/** set a user as site admin - rejects/throws if not successful */
+export async function SetUserAsSiteAdmin(siteUrl: string, userId: number) {
+    const url = `${GetRestBaseUrl(siteUrl)}/web/getuserbyid(${userId})`;
+    await GetJson<{}>(url, jsonStringify({
+        "__metadata": { "type": "SP.User" },
+        "IsSiteAdmin": true
+    }), { method: 'POST', xHttpMethod: 'MERGE' });
+    return true;
 }
