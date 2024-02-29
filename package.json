@@ -17,8 +17,7 @@
     "build": "tsc",
     "build-explain": "tsc --explainFiles",
     "build-link": "tsc && npm link",
-    "test": "node --loader tsx --test src",
-    "$npm-publish": "npm publish --access public"
+    "test": "node --loader tsx --test src"
   },
   "repository": {
     "type": "git",
