@@ -4,6 +4,12 @@ import { capitalizeFirstLetter, escapeXml, replaceAll, replaceRegex } from './st
 
 test('replaceAll', t => {
     assert.strictEqual(replaceAll("hello old#@! world old#@! !", "old#@!", "new!@$"), "hello new!@$ world new!@$ !");
+
+    //this failed since the input find included protected regex characters.
+    //escapeRegExp needs to fix that
+    const source = "string with special regex[:(s:) chars";
+    const result = "string with special regex[~~(s~~) chars";
+    assert.strictEqual(replaceAll(source, source, result), result);
 });
 
 test('capitalizeFirstLetter', async t => {
@@ -30,7 +36,7 @@ test('escapeXml', async t => {
 
 test('replaceRegex', t => {
     /** Match anything between {zone:*} */
-    var matchZones = /{zone:\w+}/gi;
+    var match = /{zone:\w+}/gi;
 
     var source = `text {zone:one} {zone:two}
 more text
@@ -39,5 +45,11 @@ more text
 more text
 THREE`;
 
-    assert.strictEqual(replaceRegex(source, matchZones, m => m.slice(1, m.length - 1).split(':')[1].toLocaleUpperCase()), result);
+    assert.strictEqual(replaceRegex(source, match, m => m.slice(1, m.length - 1).split(':')[1].toLocaleUpperCase()), result);
+
+    /** match: "](______)" */
+    match = /]\(.+\)/gi;
+    source = '[name:root](https://kwizcom.sharepoint.com/:fl:/g/contentstorage)';
+    result = '[name:root](https~~~~//kwizcom.sharepoint.com/~~~~fl~~~~/g/contentstorage)';
+    assert.strictEqual(replaceRegex(source, match, m => m.replace(/:/gi, "~~~~")), result);
 });

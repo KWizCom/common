@@ -241,7 +241,8 @@ export function normalizeHtmlSpace(html: string) {
 }
 
 export function replaceAll(str: string, find: string, replace: string, ignoreCase = false) {
-    return str.replace(new RegExp(find, `g${ignoreCase ? 'i' : ''}`), replace);
+    //must call escapeRegExp on find, to make sure it works when there are protected regex characters
+    return str.replace(new RegExp(escapeRegExp(find), `g${ignoreCase ? 'i' : ''}`), replace);
 }
 
 export function capitalizeFirstLetter(str: string) {
