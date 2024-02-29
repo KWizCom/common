@@ -1,7 +1,8 @@
 {
   "name": "@kwiz/common",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "KWIZ common utilities and helpers for M365 platform",
+  "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -16,7 +17,8 @@
     "build": "tsc",
     "build-explain": "tsc --explainFiles",
     "build-link": "tsc && npm link",
-    "test": "node --loader tsx --test src"
+    "test": "node --loader tsx --test src",
+    "$npm-publish": "npm publish --access public"
   },
   "repository": {
     "type": "git",
@@ -49,5 +51,10 @@
   "devDependencies": {
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "resolve-pkg-maps": "^1.0.0",
+    "get-tsconfig": "^4.7.2",
+    "esbuild": "^0.19.12"
   }
 }

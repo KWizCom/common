@@ -1,13 +1,17 @@
-to use this folder in your project:
+# KWIZ Common Repo
 
-1. import it using a sync task, under sub folder /sync_modules
-2. ignore it in your git-ignore
-3. might need to add this in your tsconfig include for types.d.ts files to work
-```
-"src/**/types/**/*"
-```
-4. the parent folder must export in the _dependencies file:
-   1. IsLocalDev bool
-   1. BuildNumber string
-   1. ReleaseStatus string (fast ring, production, local dev etc)
+A collection of common helpers and utilities used across KWIZ projects
 
+To get started, configure our modules to your project by calling config:
+
+```
+import { config } from "@kwiz/common";
+export const { logger: GetLogger } = config({
+    BuildNumber: BuildNumber,
+    //send true to have verbose logs and turn on debug mode
+    IsLocalDev: IsLocalDev,
+    ReleaseStatus: ReleaseStatus,
+    //prefix logger with your project name
+    ProjectName: "[cms]"
+});
+```
