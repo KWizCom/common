@@ -366,3 +366,20 @@ export async function CreateAppPage(siteUrl: string, info: {
         return fileRelativeUrl;
     });
 }
+
+/** Move a file to a new name/url, this API allows for changing file extension as well */
+export async function MoveFile(siteUrl: string, currentServerRelativeUrl: string, targetServerRelativeUrl: string) {
+    try {
+        let url = `${GetRestBaseUrl(siteUrl)}/web/getfilebyserverrelativeurl('${currentServerRelativeUrl}')/moveto(newurl='${targetServerRelativeUrl}',flags=1)`;
+        let result = await GetJson(url, undefined, { method: "POST", jsonMetadata: jsonTypes.nometadata });
+        logger.json(result, "move file");
+        return true;
+    } catch (e) {
+        logger.json(e, "move file");
+        return false;
+    }
+    //this does NOT allow to change the file extension. only file name.
+    // return UpdateItem(siteUrl, listIdOrTitle, itemId, {
+    //     FileLeafRef: newFileName "hello.txt" >> "hello.md" won't work.
+    // });
+}

@@ -1,9 +1,10 @@
-import { IGroupInfo, ISPPeoplePickerControlFormEntity, IUserInfo, IsSPPeoplePickerControlFormEntity, PrincipalType, encodeURIComponentEX, getPrincipalTypeFromPickerEntity, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, jsonStringify, jsonTypes } from "../_dependencies";
-//import { ConsoleLogger } from "../consolelogger";
+import { IGroupInfo, ISPPeoplePickerControlFormEntity, IUserInfo, IsSPPeoplePickerControlFormEntity, PrincipalType, contentTypes, encodeURIComponentEX, getPrincipalTypeFromPickerEntity, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, jsonStringify, jsonTypes } from "../_dependencies";
+import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl } from "./common";
+import { GetSiteId } from "./web";
 
-//const logger = ConsoleLogger.get("utils/sharepoint/user");
+const logger = ConsoleLogger.get("utils/sharepoint/user");
 var __currentUserId: number = null;
 const groupSelect = "Id,Title,Description,CanCurrentUserViewMembership,OnlyAllowMembersViewMembership,IsHiddenInUI,OwnerTitle";
 const userSelect = "PrincipalType,Id,LoginName,UserPrincipalName,Title,IsSiteAdmin,Email";
@@ -444,4 +445,49 @@ export async function AddUserToGroup(siteUrl: string, groupId: number, userIdOrL
 export async function RemoveUserFromGroup(siteUrl: string, groupId: number, userId: number): Promise<void> {
     let url = `${GetRestBaseUrl(siteUrl)}/web/siteGroups(${groupId})/users/removeById(${userId})`;
     await GetJson(url, null, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+}
+
+export async function SetGroupOwner(siteUrl: string, groupId: number, ownerId: number, ownerIsAGroup?: boolean) {
+    //https://github.com/SharePoint/sp-dev-docs/issues/5031#issuecomment-594710013
+    //if owner is a group - rest API doens't work.
+    if (ownerIsAGroup !== true) {
+        let url = `${GetRestBaseUrl(siteUrl)}/web/siteGroups/getById('${groupId}')/SetUserAsOwner(${ownerId})`;
+        try {
+            await GetJson<{ 'odata.null': true }>(url, null, { jsonMetadata: jsonTypes.nometadata, method: "POST" });
+            return true;
+        } catch (e) {
+            logger.error(`SetGroupOwner ${groupId} ${ownerId} error:`);
+            logger.error(e);
+            return false;
+        }
+    }
+    else {
+        try {
+            let soapUrl = `${GetSiteUrl(siteUrl)}_vti_bin/client.svc/ProcessQuery`;
+            let siteId = await GetSiteId(siteUrl);
+            let serviceJSONResponse = await GetJson<{ ErrorInfo?: string }[]>(soapUrl, `<Request AddExpandoFieldTypeSuffix="true" SchemaVersion="15.0.0.0" LibraryVersion="15.0.0.0" ApplicationName=".NET Library" xmlns="http://schemas.microsoft.com/sharepoint/clientquery/2009">
+<Actions>
+  <SetProperty Id="1" ObjectPathId="2" Name="Owner">
+    <Parameter ObjectPathId="3" />
+  </SetProperty>
+  <Method Name="Update" Id="4" ObjectPathId="2" />
+</Actions>
+<ObjectPaths>
+  <Identity Id="2" Name="740c6a0b-85e2-48a0-a494-e0f1759d4aa7:site:${siteId}:g:${groupId}" />
+  <Identity Id="3" Name="740c6a0b-85e2-48a0-a494-e0f1759d4aa7:site:${siteId}:g:${ownerId}" />
+</ObjectPaths>
+</Request>`, {
+                headers: {
+                    Accept: jsonTypes.standard,
+                    "content-type": contentTypes.xml
+                }
+            });
+            //logger.json(serviceJSONResponse, "soap result");
+            return isNullOrEmptyArray(serviceJSONResponse) || isNullOrEmptyString(serviceJSONResponse[0].ErrorInfo);
+        } catch (e) {
+            logger.error(`SetGroupOwner via SOAP ${ownerId} ${ownerId} error:`);
+            logger.error(e);
+            return false;
+        }
+    }
 }

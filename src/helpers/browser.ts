@@ -48,6 +48,7 @@ export function addEventHandler(elm: HTMLElement | Element | Document | Window, 
         elm.addEventListener(event, handler, false);
 }
 
+const saveFileLinkId = "kwizcom_download_link_tmp";
 /** prompts user to save/download a text file */
 export function saveFile(fileName: string, fileData: string, type: "application/json" | "text/csv") {
     //Issue 6003
@@ -61,7 +62,7 @@ export function saveFile(fileName: string, fileData: string, type: "application/
         //Issue 6025
         //var encodedUri = `data:${type};charset=utf-8,` + encodeURIComponent(fileData);
 
-        let link = document.getElementById('kwizcom_download_link_tmp') as HTMLAnchorElement;
+        let link = document.getElementById(saveFileLinkId) as HTMLAnchorElement;
         if (link) {
             link.remove();
             link = null;
@@ -74,7 +75,7 @@ export function saveFile(fileName: string, fileData: string, type: "application/
             link.download = fileName;
             link.innerHTML = "Click Here to download";
             DisableAnchorIntercept(link);
-            link.id = "kwizcom_download_link_tmp";
+            link.id = saveFileLinkId;
             document.body.appendChild(link); // Required for FF
             link.href = url;
         }
@@ -82,6 +83,30 @@ export function saveFile(fileName: string, fileData: string, type: "application/
             link.click();
         }, 200);
     }
+}
+
+export function saveZipFile(fileName: string, fileDataBase64: string) {
+
+    let link = document.getElementById(saveFileLinkId) as HTMLAnchorElement;
+    if (link) {
+        link.remove();
+        link = null;
+    }
+    var url = `data:application/zip;base64,${fileDataBase64}`;
+    if (!link) {
+        link = document.createElement("a");
+        link.style.position = "fixed";
+        link.style.top = "-200px";
+        link.download = fileName;
+        link.innerHTML = "Click Here to download";
+        DisableAnchorIntercept(link);
+        link.id = saveFileLinkId;
+        document.body.appendChild(link);
+        link.href = url;
+    }
+    window.setTimeout(() => {
+        link.click();
+    }, 200);
 }
 
 /** force browser to download instead of opening a file */
