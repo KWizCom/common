@@ -17,7 +17,10 @@
     "build": "tsc",
     "build-explain": "tsc --explainFiles",
     "build-link": "tsc && npm link",
-    "test": "node --loader tsx --test src"
+    "test": "node --loader tsx --test src",
+    "npm-patch": "npm version patch",
+    "npm-publish": "npm publish",
+    "reset-repo": "git fetch origin && git reset --hard origin/main"
   },
   "repository": {
     "type": "git",
