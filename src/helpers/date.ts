@@ -176,10 +176,14 @@ const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
 //const rtf = new Intl.RelativeTimeFormat('en', { style: 'short' });
 
 export function getRelativeTime(d1: Date, d2 = new Date()) {
-    var elapsed = d1.getTime() - d2.getTime();
+    try {
+        var elapsed = d1.getTime() - d2.getTime();
 
-    // "Math.abs" accounts for both "past" & "future" scenarios
-    for (var u in units)
-        if (Math.abs(elapsed) > units[u] || u === 'second')
-            return rtf.format(Math.round(elapsed / units[u]), u as Intl.RelativeTimeFormatUnit);
+        // "Math.abs" accounts for both "past" & "future" scenarios
+        for (var u in units)
+            if (Math.abs(elapsed) > units[u] || u === 'second')
+                return rtf.format(Math.round(elapsed / units[u]), u as Intl.RelativeTimeFormatUnit);
+    } catch (e) {
+        return "";
+    }
 }
