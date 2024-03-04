@@ -4,6 +4,6 @@ export function GetTokenAudiencePrefix(appId: string) {
 export function GetDefaultScope(appId: string) {
     return `${GetTokenAudiencePrefix(appId)}/access_as_user`;
 }
-export function GetMSALSiteScope(siteUrl: string) {
-    return `https://${new URL(siteUrl).hostname}`;
+export function GetMSALSiteScope(hostName: string) {
+    return `https://${hostName}`;
 }
