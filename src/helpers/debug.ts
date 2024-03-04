@@ -1,6 +1,6 @@
 import { IsLocalDev } from "./_dependencies";
 import { deleteCookie, getCookie, setCookie } from "./cookies";
-import { getKWizComGlobal } from "./objects";
+import { $w, getKWizComGlobal } from "./objects";
 import { sleepAsync } from "./promises";
 import { isFunction, isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined } from "./typecheckers";
 
@@ -136,15 +136,15 @@ export function isDebug() {
 
     if (isNullOrUndefined(kGlobal.Debug._debug)) {
         kGlobal.Debug._debug = IsLocalDev ||
-            window.location.href.indexOf('kwdebug=true') > 0 ||
-            window.location.href.indexOf('/workbench.aspx') > 0 ||
+            $w.location.href.indexOf('kwdebug=true') > 0 ||
+            $w.location.href.indexOf('/workbench.aspx') > 0 ||
             getCookie("KWizComDebug") === "true";
     }
     return kGlobal.Debug._debug === true;
 }
 /** returns true if this is a kwizcom production/test tenant */
 export function isKWizComTenant() {
-    return window.location.host === "kwizcom.sharepoint.com" || window.location.host === "kwizcomqa.sharepoint.com";
+    return $w.location.host === "kwizcom.sharepoint.com" || window.location.host === "kwizcomqa.sharepoint.com";
 }
 export function isDebugOnKWizComTenant() {
     return isKWizComTenant() && isDebug();

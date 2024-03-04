@@ -17,11 +17,12 @@
     "watch": "tsc -watch",
     "build": "npm run test && tsc",
     "build-explain": "tsc --explainFiles",
+    "check-dependencies": "madge --circular ./src",
     "create-link": "npm link",
     "test": "node --import tsx --test src",
     "npm-v-patch": "npm version patch",
     "npm-v-major": "npm version major",
-    "npm-publish": "npm publish",
+    "npm-publish": "npm publish --access public",
     "reset-repo": "git fetch origin && git reset --hard origin/main"
   },
   "repository": {
@@ -53,12 +54,13 @@
   },
   "packageManager": "npm@9.5.1",
   "devDependencies": {
+    "madge": "^6.1.0",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "resolve-pkg-maps": "^1.0.0",
+    "esbuild": "^0.19.12",
     "get-tsconfig": "^4.7.2",
-    "esbuild": "^0.19.12"
+    "resolve-pkg-maps": "^1.0.0"
   }
 }
