@@ -44,6 +44,8 @@ export interface IRestRequestOptions {
         [key: string]: string;
         Accept?: string;
         "content-type"?: string;
+        /** `Bearer ${token}` */
+        Authorization?: string;
     };
     /** allow cache on post requests if you provide a unique key to identify and match */
     postCacheKey?: string;

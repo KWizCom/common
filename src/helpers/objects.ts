@@ -1,6 +1,6 @@
 import { makeUniqueArray } from "./collections.base";
 import { jsonParse } from "./json";
-import { isDate, isFunction, isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isObject, isPrimitiveValue, primitiveTypes } from "./typecheckers";
+import { isDate, isFunction, isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isObject, isPrimitiveValue, isString, primitiveTypes } from "./typecheckers";
 
 /** global window, safe for testing and environments without a browser */
 export var $w = typeof window === "undefined" ? {
@@ -253,4 +253,16 @@ class DefaultProp<T>{
 /** creates a safe property, if the value is null/undefined or empty string - it will return the default value. */
 export function GetDefaultProp<T>(defaultValue: T | (() => T), initialValue?: T, isValid?: (value: T) => boolean) {
     return new DefaultProp(defaultValue, initialValue, isValid);
+}
+
+/** Get string error message from an error object */
+export function GetError(error: any, defaultError: string = "Unknown error"): string {
+    const err = isNullOrUndefined(error)
+        ? defaultError
+        : isString(error)
+            ? error
+            : isString((error as Error).message)
+                ? error.message
+                : defaultError;
+    return err.length > 0 ? err : defaultError;
 }
