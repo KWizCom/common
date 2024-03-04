@@ -9,5 +9,6 @@ export * from './localstoragecache';
 export * from './rest';
 export * from './sharepoint.rest';
 export * from './sod';
+export * from './auth';
 export const script = _script;
 export const Sod = _sod;

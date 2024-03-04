@@ -5,7 +5,10 @@ import { isDate, isFunction, isNotEmptyArray, isNullOrEmptyString, isNullOrUndef
 /** global window, safe for testing and environments without a browser */
 export var $w = typeof window === "undefined" ? {
     setTimeout: setTimeout,
-    clearTimeout: clearTimeout
+    clearTimeout: clearTimeout,
+    location: {
+        href: "", host: ""
+    }
 } as any as Window : window;
 
 /** wrapper for hasOwnProperty that satisfies https://eslint.org/docs/latest/rules/no-prototype-builtins */

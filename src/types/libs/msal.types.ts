@@ -1,35 +1,7 @@
+import { ITenantInfo } from "../auth";
+
 export interface IMSALBaseRequest { scopes: string[]; }
 export interface IMSALConfig { }
-export interface ITenantInfo {
-    environment: AzureEnvironment;
-    idOrName: string;
-    authorityUrl: string;
-    valid: boolean;
-}
-
-// eslint-disable-next-line no-shadow
-export enum AzureEnvironment {
-    /// <summary>
-    /// 
-    /// </summary>
-    Production = 0,
-    /// <summary>
-    /// 
-    /// </summary>
-    PPE = 1,
-    /// <summary>
-    /// 
-    /// </summary>
-    China = 2,
-    /// <summary>
-    /// 
-    /// </summary>
-    Germany = 3,
-    /// <summary>
-    /// 
-    /// </summary>
-    USGovernment = 4
-}
 
 export const MSALSampleLoginPopupScript = `<p id="msg">please wait...</p>
 <script>
@@ -58,13 +30,6 @@ function finish() {
 }
 finish();
 </script>`;
-
-export function GetTokenAudiencePrefix(appId: string) {
-    return `api://${appId}`;
-}
-export function GetDefaultScope(appId: string) {
-    return `${GetTokenAudiencePrefix(appId)}/access_as_user`;
-}
 
 export interface IMSAL {
     AutoDiscoverTenantInfo: () => Promise<ITenantInfo>;
