@@ -3,5 +3,10 @@ interface IMomentJSObj {
     isValid: () => boolean;
 }
 
-declare function momentJS(inp?: string, format?: string, strict?: boolean): IMomentJSObj;
-declare function monentJSTimeZone(inp?: string, format?: string, strict?: boolean): IMomentJSObj;
+
+export type typeMomentJS = (inp?: string, format?: string, strict?: boolean) => IMomentJSObj;
+export type typeMonentJSTimeZone = (inp?: string, format?: string, strict?: boolean) => IMomentJSObj;
+declare global {
+    var momentJS: typeMomentJS;
+    var monentJSTimeZone: typeMonentJSTimeZone;
+}

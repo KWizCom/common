@@ -1,4 +1,4 @@
-type SysNumberFormatType = {
+export type SysNumberFormatType = {
     CurrencyDecimalDigits: number;
     CurrencyDecimalSeparator: string;
     IsReadOnly: boolean;
@@ -29,7 +29,7 @@ type SysNumberFormatType = {
     DigitSubstitution: number;
 };
 
-type SysDateFormatType = {
+export type SysDateFormatType = {
     AMDesignator: string;
     Calendar: {
         MinSupportedDateTime: string;
@@ -66,7 +66,7 @@ type SysDateFormatType = {
     MonthGenitiveNames: string[];
     eras: any[];
 };
-type CultureInfoType = {
+export type CultureInfoType = {
     LCID: number;
     name: string;
     numberFormat: SysNumberFormatType;
@@ -81,14 +81,7 @@ type CultureInfoType = {
     NumberGroupSeparator?: string;
 };
 
-interface Date {
-    /**
-    * Formats a date by using the invariant (culture-independent) culture.
-    */
-    format(format: string): string;
-}
-
-interface IKLocales {
+export interface IKLocales {
     getCultureNameOrLCIDFromContextInfo(s: number): string | number;
     GetCulture(cultureNameOrLCID: string | number): CultureInfoType;
     GetCurrentCulture(): CultureInfoType;
@@ -118,8 +111,15 @@ interface IKLocales {
     IsValidNumber(strNumber: string, culture: CultureInfoType): boolean;
 }
 
-interface IKWizComGlobals {
-    kLocales?: IKLocales;
+declare global {
+    interface Date {
+        /**
+        * Formats a date by using the invariant (culture-independent) culture.
+        */
+        format(format: string): string;
+    }
+    
+    interface IKWizComGlobals {
+        kLocales?: IKLocales;
+    }
 }
-
-declare var kLocales: IKLocales;

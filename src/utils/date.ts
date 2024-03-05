@@ -10,7 +10,7 @@ export function toIsoDateFormat(date: Date, options?: {
     omitZ?: boolean;
     omitSeconds?: boolean;
     addLocalTimezoneOffset?: boolean;
-}) {
+}): string {
     let omitZ = options && options.omitZ === true || false;
     let omitSeconds = options && options.omitSeconds === true || false;
     let zeroTime = options && options.zeroTime === true || false;

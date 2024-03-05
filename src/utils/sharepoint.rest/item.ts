@@ -388,7 +388,7 @@ export function GetSPRestItemValueAsTextArray(item: IRestItem, field: IFieldInfo
 }
 /** prefer to use GetSPRestValueAsText instead */
 export function GetSPFieldValueAsText(value: any, field: IFieldInfoEX): string[] {
-    let locales = window.kLocales || LocaleKnownScript.loadSync();
+    let locales = LocaleKnownScript.loadSync();
     let culture = locales.GetCurrentCulture();
 
     let rawValues: (string | number | boolean | Date | { Id: string | number; Title: string; })[] =
