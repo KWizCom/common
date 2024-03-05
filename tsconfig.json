@@ -10,6 +10,8 @@
     "typeRoots": [
       "./src/@types"
     ],
+    "moduleResolution": "Node",
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "./src"

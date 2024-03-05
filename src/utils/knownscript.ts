@@ -1,4 +1,5 @@
-import { ICS, IDataJs, IKnownScript, IMSAL, assign, isNullOrUndefined, ksGlobal } from "./_dependencies";
+import { typeMomentJS, typeMonentJSTimeZone } from "../types/moment";
+import { ICS, IDataJs, IKLocales, IKnownScript, IMSAL, assign, isNullOrUndefined, ksGlobal } from "./_dependencies";
 import script from "./script";
 
 /** /products/common/scripts/ */
@@ -43,13 +44,13 @@ export var jQueryKnownScript = new KnownScriptLoader<any>({
 });
 
 /** loads into moment */
-export var MomentJSKnownScript = new KnownScriptLoader<typeof momentJS>({
+export var MomentJSKnownScript = new KnownScriptLoader<typeMomentJS>({
     url: "/libs/moment/moment.min.js",
     global: "moment"
 });
 
 /** loads into moment.tz */
-export var MomentTimezoneJSKnownScript = new KnownScriptLoader<typeof monentJSTimeZone>({
+export var MomentTimezoneJSKnownScript = new KnownScriptLoader<typeMonentJSTimeZone>({
     url: "/libs/moment/moment-timezone.min.js",
     global: "moment.tz",
     dependencies: [MomentJSKnownScript]
