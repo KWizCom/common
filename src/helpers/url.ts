@@ -62,16 +62,21 @@ export function makeFullUrl(url: string, baseUrl?: string): string {
 
     if (url.indexOf('://') > 0) return url;
     else {
-        //might be server relative or folder relative url.
-
-        if (isNullOrEmptyString(baseUrl) || url.startsWith('/')) {
-            var xxx = document.createElement("a");
-            xxx.href = url;
-            return xxx.href;
+        if (url.startsWith('/')) {
+            //server relative
+            if (isNullOrEmptyString(baseUrl)) {//no override base
+                var xxx = document.createElement("a");
+                xxx.href = url;
+                return xxx.href;
+            }
+            else//have override base
+            {
+                return `${baseUrl.split('/').slice(0, 3).join("/")}${url}`;
+            }
         }
         else//folder relative URL, and we have a different baseURL to base it on
         {
-            return makeFullUrl(makeServerRelativeUrl(url, baseUrl));
+            return makeFullUrl(makeServerRelativeUrl(url, baseUrl), baseUrl);
         }
     }
 }
