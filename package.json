@@ -14,7 +14,7 @@
   },
   "scripts": {
     "watch": "tsc -watch",
-    "build": "npm run test && tsc",
+    "build": "npm run reindex-project && npm run test && tsc",
     "build-explain": "tsc --explainFiles",
     "check-dependencies": "madge --circular ./src",
     "create-link": "npm link",
@@ -22,7 +22,8 @@
     "npm-v-patch": "npm version patch",
     "npm-v-major": "npm version major",
     "npm-publish": "npm publish --access public",
-    "reset-repo": "git fetch origin && git reset --hard origin/main"
+    "reset-repo": "git fetch origin && git reset --hard origin/main",
+    "reindex-project": "cti create ./src -i _dependencies -w -b -n -o exports-index.ts && node fix-folder-imports.js"
   },
   "repository": {
     "type": "git",
@@ -53,6 +54,8 @@
   },
   "packageManager": "npm@9.5.1",
   "devDependencies": {
+    "create-ts-index": "^1.14.0",
+    "fs-extra": "^11.2.0",
     "madge": "^6.1.0",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"
