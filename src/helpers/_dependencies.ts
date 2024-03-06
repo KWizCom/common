@@ -1,3 +1,3 @@
 export { IsLocalDev } from "../_dependencies";
-export * from '../types';
+export * from '../types/exports-index';
 
