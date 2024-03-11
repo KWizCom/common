@@ -62,7 +62,7 @@ export function makeFullUrl(url: string, baseUrl?: string): string {
 
     if (url.indexOf('://') > 0) return url;
     else {
-        if (url.startsWith('/')) {
+        if (url.startsWith('/') || url.startsWith('#')) {
             //server relative
             if (isNullOrEmptyString(baseUrl)) {//no override base
                 var xxx = document.createElement("a");
@@ -71,6 +71,7 @@ export function makeFullUrl(url: string, baseUrl?: string): string {
             }
             else//have override base
             {
+                if (url.startsWith('#')) return `${baseUrl.split('#')[0]}${url}`;
                 return `${baseUrl.split('/').slice(0, 3).join("/")}${url}`;
             }
         }

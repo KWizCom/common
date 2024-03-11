@@ -22,4 +22,8 @@ test('makeFullUrl', t => {
     assert.deepEqual(makeFullUrl("http://foo", "http://fii"), "http://foo");
     assert.deepEqual(makeFullUrl("foo/fii", "http://host/folder"), "http://host/folder/foo/fii");
     assert.deepEqual(makeFullUrl("/foo/fii", "http://host"), "http://host/foo/fii");
+    //fix # to full URL
+    assert.deepEqual(makeFullUrl("#hashnav", "http://foo"), "http://foo#hashnav");
+    assert.deepEqual(makeFullUrl("#hashnav2", "http://foo#hashnav"), "http://foo#hashnav2");
+    assert.deepEqual(makeFullUrl("#hashnav", "http://foo/page.aspx"), "http://foo/page.aspx#hashnav");
 });
