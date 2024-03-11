@@ -99,7 +99,11 @@ export function UploadFileSync(siteUrl: string, folderServerRelativeUrl: string,
     return res.success && res.result && res.result.d ? res.result.d : { Exists: false };
 }
 
-export function UploadFile(siteUrl: string, folderServerRelativeUrl: string, fileName: string, fileContent: IRequestBody, options?: { overwrite?: boolean; }): Promise<{
+export async function UploadFile(siteUrl: string, folderServerRelativeUrl: string, fileName: string, fileContent: IRequestBody, options?: {
+    overwrite?: boolean;
+    /** set to true to automatically find the next available file name. uploading file.ext to a folder that has that file will upload a file named file.1.ext instead */
+    autoRename?: boolean;
+}): Promise<{
     Exists: boolean;
     ServerRelativeUrl?: string;
     [fieldInternalName: string]: any;
@@ -109,6 +113,20 @@ export function UploadFile(siteUrl: string, folderServerRelativeUrl: string, fil
     options = options || { overwrite: true };
 
     folderServerRelativeUrl = makeServerRelativeUrl(folderServerRelativeUrl, siteUrl);
+
+    if (options && options.autoRename) {
+        //get all files from this folder and find the next available name
+        let files = await GetFolderFiles(siteUrl, folderServerRelativeUrl);
+        let fileNames = files.map(f => f.Name.toLowerCase());
+        let counter = 0;
+        let originalName = fileName.split('.');
+        originalName.splice(originalName.length - 1, 0, counter.toString());
+        while (fileNames.includes(fileName.toLowerCase())) {
+            counter++;
+            originalName[originalName.length - 2] = counter.toString();
+            fileName = originalName.join('.');
+        }
+    }
 
     return GetJson<{ d: { Exists: boolean; ServerRelativeUrl: string; }; }>(
         `${GetRestBaseUrl(siteUrl)}/Web/getFolderByServerRelativeUrl(serverRelativeUrl='${folderServerRelativeUrl}')/files/add(url='${fileName}'${options.overwrite ? ',overwrite=true' : ''})?$expand=ListItemAllFields`,
@@ -368,9 +386,33 @@ export async function CreateAppPage(siteUrl: string, info: {
 }
 
 /** Move a file to a new name/url, this API allows for changing file extension as well */
-export async function MoveFile(siteUrl: string, currentServerRelativeUrl: string, targetServerRelativeUrl: string) {
+export async function MoveFile(siteUrl: string, currentServerRelativeUrl: string, targetServerRelativeUrl: string, options?: {
+    overwrite?: boolean;
+    /** set to true to automatically find the next available file name. uploading file.ext to a folder that has that file will upload a file named file.1.ext instead */
+    autoRename?: boolean;
+}) {
     try {
-        let url = `${GetRestBaseUrl(siteUrl)}/web/getfilebyserverrelativeurl('${currentServerRelativeUrl}')/moveto(newurl='${targetServerRelativeUrl}',flags=1)`;
+
+        if (options && options.autoRename) {
+            let targetParts = targetServerRelativeUrl.split('/');
+            let fileName = targetParts.pop();
+            let targetFolderUrl = targetParts.join('/');
+            //get all files from this folder and find the next available name
+            let files = await GetFolderFiles(siteUrl, targetFolderUrl);
+            let fileNames = files.map(f => f.Name.toLowerCase());
+            let counter = 0;
+            let originalName = fileName.split('.');
+            originalName.splice(originalName.length - 1, 0, counter.toString());
+            while (fileNames.includes(fileName.toLowerCase())) {
+                counter++;
+                originalName[originalName.length - 2] = counter.toString();
+                fileName = originalName.join('.');
+            }
+            targetServerRelativeUrl = `${targetFolderUrl}/${fileName}`;
+        }
+
+
+        let url = `${GetRestBaseUrl(siteUrl)}/web/getfilebyserverrelativeurl('${currentServerRelativeUrl}')/moveto(newurl='${targetServerRelativeUrl}',flags=${options && options.overwrite ? 1 : 0})`;
         let result = await GetJson(url, undefined, { method: "POST", jsonMetadata: jsonTypes.nometadata });
         logger.json(result, "move file");
         return true;
