@@ -158,6 +158,10 @@ export function UserHasAllPermissions(siteUrl: string, permissions: SPBasePermis
 
 export function UserHasManageSitePermissions(siteUrl: string): Promise<boolean> {
     siteUrl = GetSiteUrl(siteUrl);
+    if (!isTypeofFullNameNullOrUndefined("_spPageContextInfo")) {
+        if (siteUrl.startsWith(_spPageContextInfo.siteServerRelativeUrl))
+            if (_spPageContextInfo.isSiteAdmin || _spPageContextInfo["isSiteOwner"]) return Promise.resolve(true);
+    }
 
     return GetJson<{ d: { EffectiveBasePermissions: { High: number; Low: number; }; }; }>(GetRestBaseUrl(siteUrl) + `/web/EffectiveBasePermissions`, null,
         { ...shortLocalCache })
