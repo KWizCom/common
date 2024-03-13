@@ -639,7 +639,7 @@ export interface IUserCustomActionInfo {
  * Specifies the type of a principal. Use $PrincipalType when isolatedModules is true
  */
 // eslint-disable-next-line no-shadow
-export const enum PrincipalType {
+export enum PrincipalType {
     /**
      * Enumeration whose value specifies no principal type.
      */
@@ -666,7 +666,9 @@ export const enum PrincipalType {
     All = 15
 }
 
-/** PrincipalType enum values for projects that can't use enums (when isolatedModules is true) */
+/** PrincipalType enum values for projects that can't use enums (when isolatedModules is true) 
+ * @deprecated use PrincipalType
+ */
 export const $PrincipalType = {
     /**
      * Enumeration whose value specifies no principal type.
