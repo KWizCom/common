@@ -6,14 +6,16 @@ export interface ITenantInfo {
 }
 
 // eslint-disable-next-line no-shadow
-export const enum AzureEnvironment {
+export enum AzureEnvironment {
     Production = 0,
     PPE = 1,
     China = 2,
     Germany = 3,
     USGovernment = 4
 }
-/** AuthenticationModes enum values for projects that can't use enums (when isolatedModules is true) */
+/** AuthenticationModes enum values for projects that can't use enums (when isolatedModules is true)  
+ * @deprecated use AzureEnvironment
+ */
 export const $AzureEnvironment = {
     Production: 0,
     PPE: 1,
@@ -23,7 +25,7 @@ export const $AzureEnvironment = {
 }
 
 // eslint-disable-next-line no-shadow
-export const enum AuthenticationModes {
+export enum AuthenticationModes {
     Certificate = "certificate",
     clientSecret = "secret"
 }
