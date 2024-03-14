@@ -1,5 +1,5 @@
 import { LocaleKnownScript } from "../../utils/knownscript";
-import { DateTimeFieldFormatType, IAttachmentInfo, IDictionary, IFieldCurrencyInfo, IFieldDateTimeInfo, IFieldInfoEX, IFieldNumberInfo, IRestItem, TaxonomyValueType, chunkArray, encodeURIComponentEX, hasOwnProperty, isBoolean, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isString, jsonTypes, promiseNParallel } from "../_dependencies";
+import { DateTimeFieldFormatType, IAttachmentInfo, IDictionary, IFieldCurrencyInfo, IFieldDateTimeInfo, IFieldInfoEX, IFieldNumberInfo, IRestItem, TaxonomyValueType, chunkArray, encodeURIComponentEX, hasOwnProperty, isBoolean, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isObject, isString, jsonTypes, promiseNParallel } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync } from "../rest";
 import { GetFieldNameFromRawValues, GetSiteUrl, __getSPRestErrorData, getFieldNameForUpdate } from "./common";
@@ -391,7 +391,7 @@ export function GetSPFieldValueAsText(value: any, field: IFieldInfoEX): string[]
     let locales = LocaleKnownScript.loadSync();
     let culture = locales.GetCurrentCulture();
 
-    let rawValues: (string | number | boolean | Date | { Id: string | number; Title: string; })[] =
+    let rawValues: (string | number | boolean | Date | TaxonomyValueType | TaxonomyValueType[] | { Id: string | number; Title: string; })[] =
         isNullOrEmptyString(value)
             ? []
             : Array.isArray(value)
@@ -401,6 +401,7 @@ export function GetSPFieldValueAsText(value: any, field: IFieldInfoEX): string[]
     let isLookup = field.TypeAsString === "Lookup" || field.TypeAsString === "LookupMulti";
     let isUser = field.TypeAsString === "User" || field.TypeAsString === "UserMulti";
     let isCounter = field.TypeAsString === "Counter" || field.TypeAsString === "Integer";
+    let isTaxonomy = field.TypeAsString === "TaxonomyFieldType" || field.TypeAsString === "TaxonomyFieldTypeMulti";
     if (field.TypeAsString === "DateTime") {
         //Issue 8190 - date field might come as string
         rawValues = rawValues.map(v => isDate(v) ? v : new Date(v as string));
@@ -439,6 +440,13 @@ export function GetSPFieldValueAsText(value: any, field: IFieldInfoEX): string[]
                         isPercent: (field as IFieldNumberInfo).ShowAsPercentage
                     }));
                 }
+            else if (isTaxonomy) {
+                if (isNotEmptyArray(raw)) {
+                    textResults.push(raw.map(t => `${t.Label}|${t.TermGuid}`).join(';'));
+                } else if (isObject(raw) && raw !== null && 'Label' in raw) {
+                    textResults.push(raw.Label || '');
+                }
+            }
             else if (isString(raw))
                 textResults.push(raw);
             else if (isBoolean(raw)) {
