@@ -657,7 +657,7 @@ export function GetListContentTypesSync(siteUrl: string, listIdOrTitle: string,
 }
 
 /** generic version. for the KWIZ forms version that supports action id call GetListFormUrlAppsWeb instead */
-export function GetListFormUrl(siteUrl: string, listId: string, pageType: PageType, params?: { contentTypeId?: string; itemId?: number | string; }) {
+export function GetListFormUrl(siteUrl: string, listId: string, pageType: PageType, params?: { contentTypeId?: string; itemId?: number | string; rootFolder?: string }) {
     siteUrl = GetSiteUrl(siteUrl);
 
     if (!isValidGuid(listId)) console.error('GetListFormUrl requires a list id');
@@ -667,6 +667,8 @@ export function GetListFormUrl(siteUrl: string, listId: string, pageType: PageTy
             url += `&ContentTypeId=${encodeURIComponent(params.contentTypeId)}`;
         if (!isNullOrEmptyString(params.itemId))
             url += `&ID=${encodeURIComponent(params.itemId as string)}`;
+        if (!isNullOrEmptyString(params.rootFolder))
+            url += `&RootFolder=${encodeURIComponent(params.rootFolder)}`;
     }
     return url;
 }
