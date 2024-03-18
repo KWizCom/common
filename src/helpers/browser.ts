@@ -1309,7 +1309,6 @@ export function showLoadingOverlay(elm: HTMLElement, options?: {
     bgColor?: string;
     innerHtml?: string;
 }) {
-    loadModernFormsCSS();
     let overlay = elm.querySelector('.kw-loading-overlay') as HTMLDivElement;
     if (!overlay) {
         overlay = document.createElement("div");
@@ -1339,12 +1338,9 @@ export function getLoadingOverlayHtml(options?: {
     bgColor?: string;
     innerHtml?: string;
 }) {
-    loadModernFormsCSS();
     let overlay = document.createElement("div");
-    overlay.className = "kw-loading-overlay kw-fixedCenter kw-absoluteFull";
-    overlay.innerHTML = options && options.innerHtml || `<img src="${LOGO_ANIM}" style="max-width: 30%;max-height: 30%;">`;
-    overlay.style.backgroundColor = options && options.bgColor || "white";
-    return overlay.outerHTML;
+    showLoadingOverlay(overlay, options);
+    return overlay.innerHTML;
 }
 
 export function getUniqueElementId(id: string = "") {
