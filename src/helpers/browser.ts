@@ -1313,7 +1313,17 @@ export function showLoadingOverlay(elm: HTMLElement, options?: {
     let overlay = elm.querySelector('.kw-loading-overlay') as HTMLDivElement;
     if (!overlay) {
         overlay = document.createElement("div");
-        overlay.className = "kw-loading-overlay kw-fixedCenter kw-absoluteFull";
+        overlay.className = "kw-loading-overlay";
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.right = "0";
+        overlay.style.bottom = "0";
+        overlay.style.zIndex = "9999999";
+        overlay.style.display = "flex";
+        overlay.style.justifyContent = "center";
+        overlay.style.alignItems = "center";
+        overlay.style.height = "100%";
         elm.appendChild(overlay);
     }
     overlay.innerHTML = options && options.innerHtml || `<img src="${LOGO_ANIM}" style="max-width: 30%;max-height: 30%;">`;
