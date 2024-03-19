@@ -515,3 +515,21 @@ export async function SetItemCreatedModifiedInfo(siteUrl: string, listIdOrTitle:
     }
     return fields.map(f => ({ field: f, error: 'Unspecified update error' }));
 }
+
+export async function ListItemHasUniquePermissions(siteUrl: string, listIdOrTitle: string, itemId: number): Promise<boolean> {
+    let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/items(${itemId})/?$select=hasuniqueroleassignments`;
+    let has = await GetJson<{ HasUniqueRoleAssignments: boolean }>(url, undefined, { allowCache: false, jsonMetadata: jsonTypes.nometadata });
+    return has.HasUniqueRoleAssignments === true;
+}
+export async function BreakListItemPermissionInheritance(siteUrl: string, listIdOrTitle: string, itemId: number, clear = true): Promise<void> {
+    let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/items(${itemId})/breakroleinheritance(copyRoleAssignments=${clear ? 'false' : 'true'}, clearSubscopes=true)`;
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+}
+export async function AssignListItemPermission(siteUrl: string, listIdOrTitle: string, itemId: number, principalId: number, roleId: number) {
+    let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/items(${itemId})/roleassignments/addroleassignment(principalid=${principalId},roleDefId=${roleId})`;
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+}
+export async function RemoveListItemPermission(siteUrl: string, listIdOrTitle: string, itemId: number, principalId: number, roleId: number) {
+    let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/items(${itemId})/roleassignments/removeroleassignment(principalid=${principalId},roleDefId=${roleId})`;
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+}

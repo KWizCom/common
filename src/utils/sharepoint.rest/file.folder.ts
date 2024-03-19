@@ -323,6 +323,28 @@ export async function GetFileItemId(siteUrl: string, fileServerRelativeUrl: stri
     const result = await GetJson<{ value: number; }>(restUrl, null, { jsonMetadata: jsonTypes.nometadata });
     return result.value;
 }
+export async function GetFileItemInfo(siteUrl: string, fileServerRelativeUrl: string): Promise<{ listId: string; itemId: number; }> {
+    try {
+        siteUrl = GetSiteUrl(siteUrl);
+        const restUrl = `${GetRestBaseUrl(siteUrl)}/web/getFileByServerRelativeUrl('${encodeURIComponentEX(fileServerRelativeUrl)}')/ListItemAllFields`;
+        const result = await GetJson<{
+            d: {
+                __metadata: {
+                    //returns something like this:
+                    uri: string;//"https://x.sharepoint.com/sites/xxx/_api/Web/Lists(guid'6f743572-6620-40e3-b2dd-c8099e73e9c8')/Items(11)"
+                },
+                Id: number;
+            }
+        }>(restUrl, null, { jsonMetadata: jsonTypes.verbose });
+
+        const itemId = result.d.Id;
+        const listId = result.d.__metadata.uri.split("'")[1];
+
+        return { listId, itemId };
+    }
+    catch (e) { return null; }
+}
+
 interface iWebPartPageProps {
     /** webpart id */
     id: string;
