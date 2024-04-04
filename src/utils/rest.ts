@@ -138,7 +138,7 @@ function getCachedResult<T>(objects: IRequestObjects): IJsonSyncResult<T> {
     var cacheKey = objects.cacheOptions.cacheKey;
     if (objects.cacheOptions.allowCache === true && objects.cacheOptions.forceCacheUpdate !== true) {
         if (isNullOrEmptyString(cacheKey)) {
-            logger.warn('cache is not supported for this type of request.');
+            //logger.warn('cache is not supported for this type of request.');
             return null;
         }
 
@@ -207,9 +207,11 @@ function setCachedResult<T>(cacheOptions: IRestCacheOptions & { cacheKey?: strin
 
 function getPendingRequest<T = any>(objects: IRequestObjects): IPendingRequest<T> {
     var cacheKey = objects.cacheOptions.cacheKey;
-    if (isNullOrEmptyString(cacheKey)) {
-        logger.warn('cache is not supported for this type of request.');
-    } else if (!isNullOrUndefined(_pendingRequests[cacheKey])) {
+    // if (isNullOrEmptyString(cacheKey)) {
+    //     logger.warn('cache is not supported for this type of request.');
+    // } 
+
+    if (!isNullOrEmptyString(cacheKey) && !isNullOrUndefined(_pendingRequests[cacheKey])) {
         //returned from cache
         return _pendingRequests[cacheKey];
     }
