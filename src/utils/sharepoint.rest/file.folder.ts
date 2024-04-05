@@ -99,15 +99,17 @@ export function UploadFileSync(siteUrl: string, folderServerRelativeUrl: string,
     return res.success && res.result && res.result.d ? res.result.d : { Exists: false };
 }
 
-export async function UploadFile(siteUrl: string, folderServerRelativeUrl: string, fileName: string, fileContent: IRequestBody, options?: {
-    overwrite?: boolean;
-    /** set to true to automatically find the next available file name. uploading file.ext to a folder that has that file will upload a file named file.1.ext instead */
-    autoRename?: boolean;
-}): Promise<{
-    Exists: boolean;
-    ServerRelativeUrl?: string;
-    [fieldInternalName: string]: any;
-}> {
+export async function UploadFile(siteUrl: string, folderServerRelativeUrl: string, fileName: string, fileContent: IRequestBody,
+    /** default options: { overwrite: true } */
+    options?: {
+        overwrite?: boolean;
+        /** set to true to automatically find the next available file name. uploading file.ext to a folder that has that file will upload a file named file.1.ext instead */
+        autoRename?: boolean;
+    }): Promise<{
+        Exists: boolean;
+        ServerRelativeUrl?: string;
+        [fieldInternalName: string]: any;
+    }> {
     siteUrl = GetSiteUrl(siteUrl);
 
     options = options || { overwrite: true };
