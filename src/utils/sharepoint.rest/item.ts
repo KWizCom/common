@@ -521,6 +521,10 @@ export async function ListItemHasUniquePermissions(siteUrl: string, listIdOrTitl
     let has = await GetJson<{ HasUniqueRoleAssignments: boolean }>(url, undefined, { allowCache: false, jsonMetadata: jsonTypes.nometadata });
     return has.HasUniqueRoleAssignments === true;
 }
+export async function RestoreListItemPermissionInheritance(siteUrl: string, listIdOrTitle: string, itemId: number): Promise<void> {
+    let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/items(${itemId})/ResetRoleInheritance`;
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+}
 export async function BreakListItemPermissionInheritance(siteUrl: string, listIdOrTitle: string, itemId: number, clear = true): Promise<void> {
     let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/items(${itemId})/breakroleinheritance(copyRoleAssignments=${clear ? 'false' : 'true'}, clearSubscopes=true)`;
     await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });

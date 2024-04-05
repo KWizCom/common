@@ -1033,6 +1033,10 @@ export async function WebHasUniquePermissions(siteUrl: string): Promise<boolean>
     let has = await GetJson<{ HasUniqueRoleAssignments: boolean }>(url, undefined, { allowCache: false, jsonMetadata: jsonTypes.nometadata });
     return has.HasUniqueRoleAssignments === true;
 }
+export async function RestoreWebPermissionInheritance(siteUrl: string): Promise<void> {
+    let url = `${GetRestBaseUrl(siteUrl)}/web/ResetRoleInheritance`;
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+}
 export async function BreakWebPermissionInheritance(siteUrl: string, clear = true): Promise<void> {
     let url = `${GetRestBaseUrl(siteUrl)}/web/breakroleinheritance(copyRoleAssignments=${clear ? 'false' : 'true'}, clearSubscopes=true)`;
     await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });

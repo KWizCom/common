@@ -1064,6 +1064,10 @@ export async function ListHasUniquePermissions(siteUrl: string, listIdOrTitle: s
     let has = await GetJson<{ HasUniqueRoleAssignments: boolean }>(url, undefined, { allowCache: false, jsonMetadata: jsonTypes.nometadata });
     return has.HasUniqueRoleAssignments === true;
 }
+export async function RestoreListPermissionInheritance(siteUrl: string, listIdOrTitle: string): Promise<void> {
+    let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/ResetRoleInheritance`;
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+}
 export async function BreakListPermissionInheritance(siteUrl: string, listIdOrTitle: string, clear = true): Promise<void> {
     let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/breakroleinheritance(copyRoleAssignments=${clear ? 'false' : 'true'}, clearSubscopes=true)`;
     await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
