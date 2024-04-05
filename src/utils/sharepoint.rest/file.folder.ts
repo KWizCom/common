@@ -344,6 +344,27 @@ export async function GetFileItemInfo(siteUrl: string, fileServerRelativeUrl: st
     }
     catch (e) { return null; }
 }
+export async function GetFolderItemInfo(siteUrl: string, folderServerRelativeUrl: string): Promise<{ listId: string; itemId: number; }> {
+    try {
+        siteUrl = GetSiteUrl(siteUrl);
+        const restUrl = `${GetRestBaseUrl(siteUrl)}/web/getFolderByServerRelativeUrl('${encodeURIComponentEX(folderServerRelativeUrl)}')/ListItemAllFields`;
+        const result = await GetJson<{
+            d: {
+                __metadata: {
+                    //returns something like this:
+                    uri: string;//"https://x.sharepoint.com/sites/xxx/_api/Web/Lists(guid'6f743572-6620-40e3-b2dd-c8099e73e9c8')/Items(11)"
+                },
+                Id: number;
+            }
+        }>(restUrl, null, { jsonMetadata: jsonTypes.verbose });
+
+        const itemId = result.d.Id;
+        const listId = result.d.__metadata.uri.split("'")[1];
+
+        return { listId, itemId };
+    }
+    catch (e) { return null; }
+}
 
 interface iWebPartPageProps {
     /** webpart id */
