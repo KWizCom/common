@@ -1,4 +1,4 @@
-import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IGroupInfo, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
+import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IGroupInfo, IRententionLabel, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeFullUrl, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { toIsoDateFormat } from "../date";
 import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, shortLocalCache, weeekLongLocalCache } from "../rest";
@@ -1058,4 +1058,33 @@ export async function SetUserAsSiteAdmin(siteUrl: string, userId: number) {
         "IsSiteAdmin": true
     }), { method: 'POST', xHttpMethod: 'MERGE' });
     return true;
+}
+
+/** get all the rentention labels (compliance tags) for a site */
+export async function GetAvailableTagsForSite(siteUrlOrId: string) {
+    let siteUrl = GetSiteUrl(siteUrlOrId);
+    try {
+        let url = `${siteUrl}_api/SP.CompliancePolicy.SPPolicyStoreProxy.GetAvailableTagsForSite(siteUrl=@a1)?@a1='${encodeURIComponent(makeFullUrl(siteUrl))}'`;
+        let result = await GetJson<{ value: IRententionLabel[] }>(url, null, {
+            jsonMetadata: jsonTypes.nometadata
+        });
+        return result.value;
+    } catch {
+        return [];
+    }
+}
+
+/** get all the rentention labels (compliance tags) for a site */
+export function GetAvailableTagsForSiteSync(siteUrlOrId: string) {
+    let siteUrl = GetSiteUrl(siteUrlOrId);
+
+    try {
+        let url = `${siteUrl}_api/SP.CompliancePolicy.SPPolicyStoreProxy.GetAvailableTagsForSite(siteUrl=@a1)?@a1='${encodeURIComponent(makeFullUrl(siteUrl))}'`;
+        let response = GetJsonSync<{ value: IRententionLabel[] }>(url, null, {
+            jsonMetadata: jsonTypes.nometadata
+        });
+        return response.success ? response.result.value : [];
+    } catch {
+        return [];
+    }
 }
