@@ -860,10 +860,13 @@ function _GetListItemsInfo(siteUrl: string, listIdOrTitle: string, options: {
             //Issue 828, 336
             if (internalName.startsWith("_")) internalName = `OData_${internalName}`;
 
-            if (c.TypeAsString === "Lookup" || c.TypeAsString === "LookupMulti" || c.TypeAsString === "User" || c.TypeAsString === "UserMulti") {
+            let isLookupField = c.TypeAsString === "Lookup" || c.TypeAsString === "LookupMulti";
+            let isUserField = c.TypeAsString === "User" || c.TypeAsString === "UserMulti";
+
+            if (isLookupField || isUserField) {
                 //ISSUE: 1519 - Added lookupField property to able to retrieve value of the additional lookup field key
                 let lookupField = (c as IFieldLookupInfo).LookupField;
-                if (!isNullOrEmptyString(lookupField)) {
+                if (!isNullOrEmptyString(lookupField) && isLookupField) {
                     columns.push(`${internalName}/${lookupField}`);
                 }
                 //we want to expand it
