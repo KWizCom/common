@@ -1107,6 +1107,11 @@ export type ThumbnailValueType = {
     id: string;//guid, like "6698ff8d-8f08-4c58-a917-ed65a6cf53d0"
 };
 
+export type RententionLabelFieldValueType = {
+    TagId: string;
+    TagName: string;
+};
+
 // eslint-disable-next-line no-shadow
 export enum RoleType {
     none,
@@ -1412,4 +1417,31 @@ export enum SPClientControlMode {
     EditForm,
     NewForm,
     View
+}
+
+export type IRententionLabel = {
+    AcceptMessagesOnlyFromSendersOrMembers: boolean;
+    AccessType: string;
+    AllowAccessFromUnmanagedDevice: string;
+    AutoDelete: boolean;
+    BlockDelete: boolean;
+    BlockEdit: boolean;
+    ComplianceFlags: number;
+    ContainsSiteLabel: boolean;
+    DisplayName: string;
+    EncryptionRMSTemplateId: string;
+    HasRetentionAction: boolean;
+    IsEventTag: boolean;
+    MultiStageReviewerEmail: string;
+    NextStageComplianceTag: string;
+    Notes: string;
+    RequireSenderAuthenticationEnabled: boolean;
+    ReviewerEmail: string;
+    SharingCapabilities: string;
+    SuperLock: boolean;
+    TagDuration: number;
+    TagId: string;
+    TagName: string;
+    TagRetentionBasedOn: string;
+    UnlockedAsDefault: boolean;
 }

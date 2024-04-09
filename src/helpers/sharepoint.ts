@@ -1,4 +1,4 @@
-import { FieldTypeAsString, FieldTypes, IDictionary, IFieldCalculatedInfo, IFieldInfo, IFieldInfoEX, IFieldJsonSchema, IFieldTaxonomyInfo, PrincipalType, SPBasePermissionKind, ThumbnailValueType, UrlValueType, UserEntityValueType } from "./_dependencies";
+import { FieldTypeAsString, FieldTypes, IDictionary, IFieldCalculatedInfo, IFieldInfo, IFieldInfoEX, IFieldJsonSchema, IFieldTaxonomyInfo, PrincipalType, RententionLabelFieldValueType, SPBasePermissionKind, ThumbnailValueType, UrlValueType, UserEntityValueType } from "./_dependencies";
 import { firstOrNull, forEach } from "./collections.base";
 import { deleteCookie, getCookie, setCookie } from "./cookies";
 import { isValidEmail } from "./emails";
@@ -667,13 +667,20 @@ export function IsUrlValueType(value: any): value is UrlValueType {
     if (isNullOrUndefined(value) || isString(value)) {
         return false;
     }
-    var asTypeUrlValue = value as UrlValueType;
-    var isTypeUrlValue = !isNullOrUndefined(asTypeUrlValue.Url) && !isNullOrUndefined(asTypeUrlValue.Description);
-    return isTypeUrlValue;
+    let asType = value as UrlValueType;
+    return !isNullOrUndefined(asType.Url) && !isNullOrUndefined(asType.Description);
 }
 
-export function isHostedInTeams(){
-    return window.location.pathname.toLowerCase().indexOf("teamshostedapp.aspx")>=0;
+export function IsRetentionLabelValueType(value: any): value is RententionLabelFieldValueType {
+    if (isNullOrUndefined(value) || isString(value)) {
+        return false;
+    }
+    let asType = value as RententionLabelFieldValueType;
+    return isValidGuid(asType.TagId) && !isNullOrEmptyString(asType.TagName);
+}
+
+export function isHostedInTeams() {
+    return window.location.pathname.toLowerCase().indexOf("teamshostedapp.aspx") >= 0;
 }
 export function isClassicAppIframe() {
     return window.location.search.toLowerCase().indexOf("sphosturl=") >= 0 &&
