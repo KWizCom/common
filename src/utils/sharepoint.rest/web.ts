@@ -1,4 +1,4 @@
-import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IGroupInfo, IRententionLabel, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeFullUrl, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
+import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IGroupInfo, IRententionLabel, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeFullUrl, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { toIsoDateFormat } from "../date";
 import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, shortLocalCache, weeekLongLocalCache } from "../rest";
@@ -646,8 +646,8 @@ export interface iRoleAssignment {
     PrincipalId: 14
 };
 /** get roles for site or list */
-export async function GetRoleAssignments(siteUrl: string, listIdOrTitle?: string) {
-    const url = `${isNullOrEmptyString(listIdOrTitle) ? GetRestBaseUrl(siteUrl) + "/web" : GetListRestUrl(siteUrl, listIdOrTitle)}/roleassignments?$expand=Member/users,RoleDefinitionBindings`;
+export async function GetRoleAssignments(siteUrl: string, listIdOrTitle?: string, itemId?: number) {
+    const url = `${isNullOrEmptyString(listIdOrTitle) ? GetRestBaseUrl(siteUrl) + "/web" : GetListRestUrl(siteUrl, listIdOrTitle)}/${isNullOrNaN(itemId) ? '' : `item(${itemId})/`}roleassignments?$expand=Member/users,RoleDefinitionBindings`;
     const result = await GetJson<{ value: iRoleAssignment[] }>(url, undefined, { jsonMetadata: jsonTypes.nometadata });
     return result.value;
 }
