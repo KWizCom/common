@@ -647,7 +647,7 @@ export interface iRoleAssignment {
 };
 /** get roles for site or list */
 export async function GetRoleAssignments(siteUrl: string, listIdOrTitle?: string, itemId?: number) {
-    const url = `${isNullOrEmptyString(listIdOrTitle) ? GetRestBaseUrl(siteUrl) + "/web" : GetListRestUrl(siteUrl, listIdOrTitle)}/${isNullOrNaN(itemId) ? '' : `item(${itemId})/`}roleassignments?$expand=Member/users,RoleDefinitionBindings`;
+    const url = `${isNullOrEmptyString(listIdOrTitle) ? GetRestBaseUrl(siteUrl) + "/web" : GetListRestUrl(siteUrl, listIdOrTitle)}/${isNullOrNaN(itemId) ? '' : `items(${itemId})/`}roleassignments?$expand=Member/users,RoleDefinitionBindings`;
     const result = await GetJson<{ value: iRoleAssignment[] }>(url, undefined, { jsonMetadata: jsonTypes.nometadata });
     return result.value;
 }
