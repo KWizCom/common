@@ -687,7 +687,7 @@ export function isClassicAppIframe() {
         window.location.search.toLowerCase().indexOf("spappweburl=") >= 0;
 }
 
-export const isNumberFieldType = (fieldInfo: IFieldInfoEX) => {
+export function isNumberFieldType(fieldInfo: IFieldInfoEX) {
     let targetColumnOutputType = getFieldOutputType(fieldInfo);
     return targetColumnOutputType === "Currency"
         || targetColumnOutputType === "Number"
