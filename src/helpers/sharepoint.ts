@@ -686,3 +686,11 @@ export function isClassicAppIframe() {
     return window.location.search.toLowerCase().indexOf("sphosturl=") >= 0 &&
         window.location.search.toLowerCase().indexOf("spappweburl=") >= 0;
 }
+
+export const isNumberFieldType = (fieldInfo: IFieldInfoEX) => {
+    let targetColumnOutputType = getFieldOutputType(fieldInfo);
+    return targetColumnOutputType === "Currency"
+        || targetColumnOutputType === "Number"
+        || targetColumnOutputType === "Counter"
+        || targetColumnOutputType === "Integer";
+};
