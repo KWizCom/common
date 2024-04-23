@@ -1445,3 +1445,15 @@ export type IRententionLabel = {
     TagRetentionBasedOn: string;
     UnlockedAsDefault: boolean;
 }
+
+export type spNavLinkLocation = "quicklaunch" | "topnavigationbar" | "none";
+
+export interface INavLinkInfo {
+    Id: number;
+    IsDocLib: boolean;
+    IsExternal: boolean;
+    IsVisible: boolean;
+    Title: string;
+    Url: string;
+    Location: spNavLinkLocation;
+}
