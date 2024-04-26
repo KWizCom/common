@@ -947,6 +947,31 @@ export async function GetUserCustomActions(siteUrl?: string, allowCache = true):
     return result && result.value || null;
 }
 
+/** Add UserCustomAction to web */
+export async function AddUserCustomAction(siteUrl: string, userCustomActionInfo: Pick<IUserCustomActionInfo, "Title" | "Name" | "Location" | "ScriptSrc" | "Sequence">): Promise<boolean> {
+    siteUrl = GetSiteUrl(siteUrl);
+    let restUrl = `${GetRestBaseUrl(siteUrl)}/web/UserCustomActions`;
+    let restOptions: IRestOptions = {
+        jsonMetadata: jsonTypes.nometadata,
+        method: "POST"
+    };
+    let result = await GetJson<string>(restUrl, JSON.stringify(userCustomActionInfo), restOptions);
+    return isNullOrEmptyString(result);
+}
+
+/** Add UserCustomAction to web */
+export async function UpdateUserCustomAction(siteUrl: string, id: string, userCustomActionInfo: Pick<IUserCustomActionInfo, "Title" | "Name" | "Location" | "ScriptSrc" | "Sequence">): Promise<boolean> {
+    siteUrl = GetSiteUrl(siteUrl);
+    let restUrl = `${GetRestBaseUrl(siteUrl)}/web/UserCustomActions('${id}')`;
+    let restOptions: IRestOptions = {
+        jsonMetadata: jsonTypes.nometadata,
+        method: "POST",
+        xHttpMethod: "MERGE"
+    };
+    let result = await GetJson<string>(restUrl, JSON.stringify(userCustomActionInfo), restOptions);
+    return isNullOrEmptyString(result);
+}
+
 /** Get web regional settings */
 export async function GetRegionalSettings(siteUrl?: string) {
     siteUrl = GetSiteUrl(siteUrl);
