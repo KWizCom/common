@@ -387,6 +387,7 @@ export function CreateField(siteUrl: string, listIdOrTitle: string, options: {
     SkipAddToDefaultView?: boolean;
     ClientSideComponentId?: string;
     ClientSideComponentProperties?: string;
+    JSLink?: string;
 
 }): Promise<IFieldInfoEX> {
     siteUrl = GetSiteUrl(siteUrl);
@@ -441,6 +442,8 @@ export function CreateField(siteUrl: string, listIdOrTitle: string, options: {
             updateObject.ClientSideComponentId = options.ClientSideComponentId;
         if (!isNullOrEmptyString(options.ClientSideComponentProperties))
             updateObject.ClientSideComponentProperties = options.ClientSideComponentProperties;
+        if (!isNullOrEmptyString(options.JSLink))
+            updateObject.JSLink = options.JSLink;
 
         return GetJson<{ d: IFieldInfo; }>(GetListRestUrl(siteUrl, listIdOrTitle) + `/fields`,
             JSON.stringify(updateObject))
@@ -461,6 +464,7 @@ export async function UpdateField(siteUrlOrId: string, listIdOrTitle: string, fi
     FieldType?: FieldTypeAsString;
     Required?: boolean;
     Hidden?: boolean;
+    JSLink?: string;
     ClientSideComponentId?: string;
     ClientSideComponentProperties?: string;
 }): Promise<IFieldInfoEX> {
@@ -513,6 +517,8 @@ export async function UpdateField(siteUrlOrId: string, listIdOrTitle: string, fi
             updates.ClientSideComponentId = options.ClientSideComponentId;
         if (!isNullOrEmptyString(options.ClientSideComponentProperties))
             updates.ClientSideComponentProperties = options.ClientSideComponentProperties;
+        if (!isNullOrEmptyString(options.JSLink))
+            updates.JSLink = options.JSLink;
     }
 
     if (Object.keys(updates).length > 1) {
