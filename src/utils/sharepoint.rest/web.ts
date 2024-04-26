@@ -934,10 +934,27 @@ export function GetContextWebInformationSync(siteUrl: string): IContextWebInform
     }
 }
 
-/** Get UserCustomActions for web */
-export async function GetUserCustomActions(siteUrl?: string, allowCache = true): Promise<IUserCustomActionInfo[]> {
-    siteUrl = GetSiteUrl(siteUrl);
-    let restUrl = `${GetRestBaseUrl(siteUrl)}/web/UserCustomActions?&select=Name,ScriptSrc,Title`;
+function _getCustomActionsBaseRestUrl(siteUrl?: string, options: { listId?: string, actionId?: string } = {}) {
+    const { listId, actionId } = { ...options };
+
+    let restUrl = `${GetRestBaseUrl(siteUrl)}/web`;
+
+    if (!isNullOrEmptyString(listId)) {
+        restUrl += `/lists('${normalizeGuid(listId)}')`;
+    }
+
+    restUrl += `/UserCustomActions`;
+
+    if (!isNullOrEmptyString(actionId)) {
+        restUrl += `('${actionId}')`;
+    }
+
+    return restUrl;
+}
+
+/** Get UserCustomActions for web/list */
+export async function GetUserCustomActions(siteUrl: string, listId?: string, allowCache = true): Promise<IUserCustomActionInfo[]> {
+    let restUrl = _getCustomActionsBaseRestUrl(siteUrl, { listId: listId });
     let cacheOptions = allowCache === true ? shortLocalCache : { allowCache: false };
     let restOptions: IRestOptions = {
         jsonMetadata: jsonTypes.nometadata,
@@ -947,29 +964,84 @@ export async function GetUserCustomActions(siteUrl?: string, allowCache = true):
     return result && result.value || null;
 }
 
-/** Add UserCustomAction to web */
-export async function AddUserCustomAction(siteUrl: string, userCustomActionInfo: Pick<IUserCustomActionInfo, "Title" | "Name" | "Location" | "ScriptSrc" | "Sequence">): Promise<boolean> {
-    siteUrl = GetSiteUrl(siteUrl);
-    let restUrl = `${GetRestBaseUrl(siteUrl)}/web/UserCustomActions`;
+/** Get UserCustomAction by id from web/list */
+export async function GetUserCustomActionById(siteUrl: string, customActionId: string, listId?: string, allowCache = true): Promise<IUserCustomActionInfo> {
+    let restUrl = _getCustomActionsBaseRestUrl(siteUrl, { listId: listId, actionId: customActionId });
+    let cacheOptions = allowCache === true ? shortLocalCache : { allowCache: false };
+    let restOptions: IRestOptions = {
+        jsonMetadata: jsonTypes.nometadata,
+        ...cacheOptions
+    };
+    try {
+        let result = await GetJson<IUserCustomActionInfo>(restUrl, null, restOptions);
+        return result || null;
+    } catch {
+    }
+    return null;
+}
+
+/** Get UserCustomAction by name from web/list */
+export async function GetUserCustomActionByName(siteUrl: string, name: string, listId?: string, allowCache = true): Promise<IUserCustomActionInfo[]> {
+    let restUrl = `${_getCustomActionsBaseRestUrl(siteUrl, { listId: listId })}?$filter=Name eq '${encodeURIComponent(name)}'`;
+    let cacheOptions = allowCache === true ? shortLocalCache : { allowCache: false };
+    let restOptions: IRestOptions = {
+        jsonMetadata: jsonTypes.nometadata,
+        ...cacheOptions
+    };
+    try {
+        let result = await GetJson<{ value: IUserCustomActionInfo[]; }>(restUrl, null, restOptions);
+        return result && result.value || [];
+    } catch {
+    }
+    return [];
+}
+
+/** Add UserCustomAction to web/list */
+export async function AddUserCustomAction(siteUrl: string, userCustomActionInfo: Omit<Partial<IUserCustomActionInfo>, "Id">, listId?: string): Promise<IUserCustomActionInfo> {
+    let restUrl = _getCustomActionsBaseRestUrl(siteUrl, { listId: listId });
     let restOptions: IRestOptions = {
         jsonMetadata: jsonTypes.nometadata,
         method: "POST"
     };
-    let result = await GetJson<string>(restUrl, JSON.stringify(userCustomActionInfo), restOptions);
-    return isNullOrEmptyString(result);
+
+    try {
+        let result = await GetJson<IUserCustomActionInfo>(restUrl, JSON.stringify(userCustomActionInfo), restOptions);
+        return result || null;
+    } catch {
+    }
+    return null;
 }
 
-/** Add UserCustomAction to web */
-export async function UpdateUserCustomAction(siteUrl: string, id: string, userCustomActionInfo: Pick<IUserCustomActionInfo, "Title" | "Name" | "Location" | "ScriptSrc" | "Sequence">): Promise<boolean> {
-    siteUrl = GetSiteUrl(siteUrl);
-    let restUrl = `${GetRestBaseUrl(siteUrl)}/web/UserCustomActions('${id}')`;
+/** Update UserCustomAction to web/list */
+export async function UpdateUserCustomAction(siteUrl: string, customActionId: string, userCustomActionInfo: Omit<Partial<IUserCustomActionInfo>, "Id">, listId?: string): Promise<boolean> {
+    let restUrl = _getCustomActionsBaseRestUrl(siteUrl, { listId: listId, actionId: customActionId });
     let restOptions: IRestOptions = {
         jsonMetadata: jsonTypes.nometadata,
         method: "POST",
         xHttpMethod: "MERGE"
     };
-    let result = await GetJson<string>(restUrl, JSON.stringify(userCustomActionInfo), restOptions);
-    return isNullOrEmptyString(result);
+    try {
+        let result = await GetJson<{ "odata.null": boolean } | string>(restUrl, JSON.stringify(userCustomActionInfo), restOptions);
+        return !isNullOrUndefined(result) && result["odata.null"] === true || isNullOrEmptyString(result);
+    } catch {
+    }
+    return false;
+}
+
+/** Delete UserCustomAction from web/list */
+export async function DeleteUserCustomAction(siteUrl: string, customActionId: string, listId?: string): Promise<boolean> {
+    let restUrl = _getCustomActionsBaseRestUrl(siteUrl, { listId: listId, actionId: customActionId });
+    let restOptions: IRestOptions = {
+        jsonMetadata: jsonTypes.nometadata,
+        method: "POST",
+        xHttpMethod: "DELETE"
+    };
+    try {
+        let result = await GetJson<{ "odata.null": boolean } | string>(restUrl, null, restOptions);
+        return !isNullOrUndefined(result) && result["odata.null"] === true || isNullOrEmptyString(result);
+    } catch {
+    }
+    return false;
 }
 
 /** Get web regional settings */
