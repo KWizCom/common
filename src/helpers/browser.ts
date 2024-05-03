@@ -334,7 +334,7 @@ export function registerDOMChangedObserver(callbackOrHandler: (() => void) | iOb
             callbacks: [callbackInfo]
         };
 
-        let onDomChanged = debounce(() => {
+        let onDomChanged = () => {
             if (!isNullOrUndefined(newDef) && !isNullOrEmptyArray(newDef.callbacks)) {
                 newDef.callbacks.forEach((c) => {
                     try {
@@ -342,7 +342,7 @@ export function registerDOMChangedObserver(callbackOrHandler: (() => void) | iOb
                     } catch (e) { }
                 });
             }
-        }, 100);
+        };
 
         if ("MutationObserver" in win) {
             let observer: MutationObserver = new win.MutationObserver((mutations) => {
