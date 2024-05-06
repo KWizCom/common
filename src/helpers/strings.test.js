@@ -1,6 +1,6 @@
 import assert from 'assert/strict';
 import test from 'node:test';
-import { capitalizeFirstLetter, escapeXml, replaceAll, replaceRegex } from './strings';
+import { ReplaceTokensInDictionary, capitalizeFirstLetter, escapeXml, maskString, replaceAll, replaceRegex } from './strings';
 
 test('replaceAll', t => {
     assert.strictEqual(replaceAll("hello old#@! world old#@! !", "old#@!", "new!@$"), "hello new!@$ world new!@$ !");
@@ -52,4 +52,34 @@ THREE`;
     source = '[name:root](https://kwizcom.sharepoint.com/:fl:/g/contentstorage)';
     result = '[name:root](https~~~~//kwizcom.sharepoint.com/~~~~fl~~~~/g/contentstorage)';
     assert.strictEqual(replaceRegex(source, match, m => m.replace(/:/gi, "~~~~")), result);
+});
+
+test('maskString', async t => {
+    assert.strictEqual(maskString("abcdefg"), "ab*****fg");
+    assert.strictEqual(maskString("ab"), "ab*****ab");
+    assert.strictEqual(maskString(""), "*****");
+    assert.strictEqual(maskString("abcdefg", { mask: "..." }), "ab...fg");
+    assert.strictEqual(maskString("abcdefg", { mask: "...", start: 0, end: 0 }), "...");
+    assert.strictEqual(maskString("abcdefg", { mask: "...", start: 1, end: 1 }), "a...g");
+});
+
+test('ReplaceTokensInDictionary', async t => {
+    const tokens = { "t1": "token1", "t2": "token 2" };
+    let dic = {};
+    let expected = {};
+
+    dic = { a: "hello" };
+    expected = { a: "hello" };
+    ReplaceTokensInDictionary(dic, tokens);
+    assert.strictEqual(JSON.stringify(dic), JSON.stringify(expected));
+
+    dic = { a: "hello", b: "hello [t1]" };
+    expected = { a: "hello", b: "hello token1" };
+    ReplaceTokensInDictionary(dic, tokens);
+    assert.strictEqual(JSON.stringify(dic), JSON.stringify(expected));
+
+    dic = { a: "hello", b: "hello [t1] [t2]", c: "[t2]" };
+    expected = { a: "hello", b: "hello token1 token 2", c: "token 2" };
+    ReplaceTokensInDictionary(dic, tokens);
+    assert.strictEqual(JSON.stringify(dic), JSON.stringify(expected));
 });

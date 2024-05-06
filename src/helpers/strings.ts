@@ -107,6 +107,15 @@ export function ReplaceTokens(StringFormat: string, TokenValues: IDictionary<str
     return StringFormat;
 }
 
+/** calls replace tokens on every dictionary value, or set null keys to "". This function ignores null/empty dictionaries */
+export function ReplaceTokensInDictionary(Dictionary: IDictionary<string>, TokenValues: IDictionary<string>) {
+    if (!isNullOrUndefined(Dictionary)) {
+        Object.keys(Dictionary).forEach(key => {
+            Dictionary[key] = isNullOrEmptyString(Dictionary[key]) ? "" : ReplaceTokens(Dictionary[key], TokenValues);
+        });
+    }
+}
+
 /** Normalizes a guid string, lower case and removes {} */
 export function normalizeGuid(text: string, removeDashes?: boolean): string {
     if (isNullOrEmptyString(text) || !isString(text)) {
@@ -286,4 +295,23 @@ export function replaceRegex(str: string, regex: RegExp, replacer: (match: strin
             str = replaceAll(str, m, replacement);
     });
     return str;
+}
+
+/** masks a long string, keeping X number for characters at the start/end and replacing the middle with the mask string (default: CC*****CCC) */
+export function maskString(str: string, options?: {
+    /** mask string, default ***** */
+    mask?: string;
+    /** characters to keep at start, default 2 */
+    start?: number;
+    /** characters to keep at end, default 2 */
+    end?: number;
+}) {
+    const mask = options && options.mask || "*****";
+    const start = options && isNumber(options.start) ? options.start : 2;
+    const end = options && isNumber(options.end) ? options.end : 2;
+    const prefix = start >= 0 ? str.slice(0, start) : str;
+    const sliceEnd = str.length - end;
+    const suffix = sliceEnd >= 0 ? str.slice(sliceEnd) : str;
+
+    return `${prefix}${mask}${suffix}`;
 }

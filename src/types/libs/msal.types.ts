@@ -1,7 +1,13 @@
 import { ITenantInfo } from "../auth";
 
 export interface IMSALBaseRequest { scopes: string[]; }
-export interface IMSALConfig { }
+export interface IMSALConfig {
+    auth: {
+        clientId: string;
+        authority: string;
+        redirectUri: string;
+    }
+ }
 
 export const MSALSampleLoginPopupScript = `<p id="msg">please wait...</p>
 <script>
