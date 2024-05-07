@@ -1,7 +1,12 @@
 import assert from 'assert/strict';
 import test from 'node:test';
-import { objectsEqual } from './objects';
+import { objectsEqual, primitivesEqual } from './objects';
 
+test('primitivesEqual', t => {
+    assert.strictEqual(primitivesEqual(null, ""), false);
+    assert.strictEqual(primitivesEqual(null, undefined), true);
+    assert.strictEqual(primitivesEqual(new Date('2022-02-02'), new Date('2022-02-02')), true);
+});
 test('objectsEqual', async t => {
     let now = new Date();
     let next = new Date(now.getTime() + 10000);//add a second
@@ -24,4 +29,6 @@ test('objectsEqual', async t => {
         { id: 1, name: "test", complex: { cid: 4, foo: () => console.log(1) }, nested: { nid: 4, complex: { ncid: 5, time: next } } },
         ["time"]),
         true);
+
+    assert.strictEqual(objectsEqual(null, ""), false);
 });

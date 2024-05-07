@@ -104,7 +104,7 @@ export function assign<T>(original: Partial<T>, ...overrides: Partial<T>[]): T {
 
 export function primitivesEqual(o1: primitiveTypes, o2: primitiveTypes) {
     let normalize = (oo: any) => {
-        if (isNullOrEmptyString(oo))
+        if (isNullOrUndefined(oo))
             return null;
         else if (isDate(oo))
             return oo.getTime();
@@ -234,7 +234,7 @@ export function objectValues<T = any>(obj: any): T[] {
     }) as T[];
 }
 
-class DefaultProp<T>{
+class DefaultProp<T> {
     private _value: T;
     private _defaultValue: T | (() => T);
     private isValid: (value: T) => boolean;
