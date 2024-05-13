@@ -61,7 +61,7 @@ interface IGetSiteAssetLibraryReturnValue {
 export function EnsureAssetLibrary(siteUrl: string): Promise<IGetSiteAssetLibraryResult> {
     siteUrl = GetSiteUrl(siteUrl);
 
-    var url = GetRestBaseUrl(siteUrl) +
+    let url = GetRestBaseUrl(siteUrl) +
         "/web/lists/EnsureSiteAssetsLibrary?$select=ID,RootFolder/Name,RootFolder/ServerRelativeUrl,RootFolder/Exists&$expand=RootFolder";
     return GetJson<{
         d: { Id: string; RootFolder: { Name: string; ServerRelativeUrl: string; Exists: boolean; }; };
@@ -74,6 +74,29 @@ export function EnsureAssetLibrary(siteUrl: string): Promise<IGetSiteAssetLibrar
             };
         } else return null;
     }).catch<IGetSiteAssetLibraryResult>(() => null);
+}
+
+interface IGetSitePagesLibrarResult { Id: string, Name: string, ServerRelativeUrl: string }
+
+/** ensures the site pages library exists and return its info. on errors - it will return null. */
+export async function EnsureSitePagesLibrary(siteUrl: string): Promise<IGetSitePagesLibrarResult> {
+    let url = `${GetRestBaseUrl(siteUrl)}/web/lists/EnsureSitePagesLibrary`
+        + `?$select=ID,RootFolder/Name,RootFolder/ServerRelativeUrl,RootFolder/Exists&$expand=RootFolder`;
+    let response = await GetJson<iList>(url, null, {
+        method: "POST",
+        jsonMetadata: jsonTypes.nometadata,
+        includeDigestInPost: true,
+        ...longLocalCache
+    });
+
+    if (!isNullOrUndefined(response) && !isNullOrUndefined(response.RootFolder)) {
+        return {
+            Id: response.Id,
+            Name: response.RootFolder.Name,
+            ServerRelativeUrl: response.RootFolder.ServerRelativeUrl
+        };
+    }
+    return null;
 }
 
 export function GetSiteAssetLibrary(siteUrl: string, sync?: false): Promise<IGetSiteAssetLibraryResult>;

@@ -596,6 +596,7 @@ export interface IFolderInfo extends IFolderBasicInfo {
     TimeLastModified: string;
     UniqueId: string;
     WelcomePage: string;
+    Folders?: IFolderInfo[]    
 }
 
 // eslint-disable-next-line no-shadow

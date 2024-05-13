@@ -1,6 +1,6 @@
-import { IDictionary, IFileInfo, IFolderBasicInfo, IRequestBody, IRestOptions, IRestResponseType, encodeURIComponentEX, isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, jsonStringify, jsonTypes, makeServerRelativeUrl, newGuid, normalizeUrl } from "../_dependencies";
+import { IDictionary, IFileInfo, IFolderBasicInfo, IFolderInfo, IRequestBody, IRestOptions, IRestResponseType, encodeURIComponentEX, isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, jsonStringify, jsonTypes, makeServerRelativeUrl, newGuid, normalizeUrl } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
-import { GetJson, GetJsonSync, longLocalCache, noLocalCache, shortLocalCache } from "../rest";
+import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, noLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl } from "./common";
 import { GetListRestUrl } from "./list";
 
@@ -52,7 +52,6 @@ export function EnsureFolder(siteUrl: string, parentFolderServerRelativeUrl: str
         .then(r => { return r.d; })
         .catch<{ Exists: boolean; ServerRelativeUrl?: string; }>(() => { return { Exists: false }; });
 }
-
 
 export function DeleteFolder(siteUrl: string, folderUrl: string): Promise<boolean> {
     siteUrl = GetSiteUrl(siteUrl);
@@ -144,6 +143,22 @@ export async function UploadFile(siteUrl: string, folderServerRelativeUrl: strin
             ServerRelativeUrl?: string;
             [fieldInternalName: string]: any;
         }>(() => { return { Exists: false }; });
+}
+
+export async function PulishFile(siteUrl: string, folderUrl: string, comment: string = "") {
+    siteUrl = GetSiteUrl(siteUrl);
+    let folderServerRelativeUrl = makeServerRelativeUrl(folderUrl, siteUrl);
+    try {
+        let publishUrl = `${GetRestBaseUrl(siteUrl)}/Web/getFileByServerRelativeUrl('${folderServerRelativeUrl}')/publish('${comment}')`;
+        let publishResult = await GetJson<{ "odata.null": boolean }>(publishUrl, null, {
+            method: "POST",
+            jsonMetadata: jsonTypes.nometadata,
+            includeDigestInPost: true
+        });
+        return !isNullOrUndefined(publishResult) && publishResult["odata.null"] === true;
+    } catch {
+    }
+    return null;
 }
 
 export function RecycleFile(siteUrl: string, fileServerRelativeUrl: string): Promise<boolean> {
@@ -317,6 +332,38 @@ export async function GetListFolders(siteUrl: string, listIdOrTitle: string): Pr
     }
 
     return results;
+}
+
+export async function GetFolder(siteUrl: string, folderUrl: string, options: { allowCache?: boolean, includeFolders?: boolean, includeFiles?: boolean } = {}) {
+    options = { includeFiles: false, includeFolders: false, allowCache: true, ...options };
+    siteUrl = GetSiteUrl(siteUrl);
+    try {
+        let folderServerRelativeUrl = makeServerRelativeUrl(folderUrl, siteUrl);
+        let restUrl = `${GetRestBaseUrl(siteUrl)}/web/getFolderByServerRelativeUrl('${encodeURIComponentEX(folderServerRelativeUrl)}')`;
+
+        if (options.includeFiles === true || options.includeFolders === true) {
+            let expand = [];
+            if (options.includeFiles) {
+                expand.push("Files");
+            }
+            if (options.includeFolders) {
+                expand.push("Folders");
+            }
+
+            restUrl += `?$expand=${expand.join(",")}`;
+        }
+
+        const result = await GetJson<IFolderInfo>(
+            restUrl,
+            null,
+            {
+                ...(options.allowCache ? mediumLocalCache : noLocalCache),
+                jsonMetadata: jsonTypes.nometadata
+            });
+        return result;
+    } catch {
+    }
+    return null;
 }
 
 export async function GetFileItemId(siteUrl: string, fileServerRelativeUrl: string) {

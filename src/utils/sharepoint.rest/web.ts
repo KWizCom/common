@@ -1,7 +1,7 @@
-import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IGroupInfo, IRententionLabel, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeFullUrl, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
+import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IFolderInfo, IGroupInfo, IRententionLabel, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeFullUrl, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { toIsoDateFormat } from "../date";
-import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, shortLocalCache, weeekLongLocalCache } from "../rest";
+import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, noLocalCache, shortLocalCache, weeekLongLocalCache } from "../rest";
 import { CONTENT_TYPES_SELECT, CONTENT_TYPES_SELECT_WITH_FIELDS, GetRestBaseUrl, GetSiteUrl, LIST_EXPAND, LIST_SELECT, WEB_SELECT, hasGlobalContext } from "./common";
 import { GetListFields, GetListFieldsSync, GetListRestUrl } from "./list";
 
@@ -1184,4 +1184,89 @@ export function GetAvailableTagsForSiteSync(siteUrlOrId: string) {
     } catch {
         return [];
     }
+}
+
+export async function GetActiveFeatures(siteUrlOrId: string, allowCache = true) {
+    let siteUrl = GetSiteUrl(siteUrlOrId);
+    try {
+        let url = `${siteUrl}/_api/web/features?$select=DisplayName,DefinitionId`;
+        let response = await GetJson<{ value: { DisplayName: string; DefinitionId: string; }[]; }>(url, null, {
+            method: "GET",
+            jsonMetadata: jsonTypes.nometadata,
+            includeDigestInGet: true,
+            ...(allowCache === true ? mediumLocalCache : noLocalCache)
+        });
+        return response.value;
+    } catch {
+    }
+    return null;
+}
+
+export async function ActivateFeature(siteUrlOrId: string, id: string) {
+    let siteUrl = GetSiteUrl(siteUrlOrId);
+    try {
+        id = normalizeGuid(id);
+        let url = `${siteUrl}/_api/web/features/add('${id}')`;
+        let response = await GetJson<{ DefinitionId: string; }>(url, null, {
+            method: "POST",
+            jsonMetadata: jsonTypes.nometadata,
+            includeDigestInPost: true
+        });
+        return !isNullOrUndefined(response) && normalizeGuid(response.DefinitionId) === id;
+    } catch {
+    }
+    return false;
+}
+
+export async function DectivateFeature(siteUrlOrId: string, id: string) {
+    let siteUrl = GetSiteUrl(siteUrlOrId);
+    try {
+        id = normalizeGuid(id);
+        let url = `${siteUrl}/_api/web/features/remove('${id}')`;
+        let response = await GetJson<{ "odata.null": boolean }>(url, null, {
+            method: "POST",
+            jsonMetadata: jsonTypes.nometadata,
+            includeDigestInPost: true
+        });
+        return !isNullOrUndefined(response) && response["odata.null"] === true;
+    } catch {
+    }
+    return null;
+}
+
+export async function GetWelcomePage(siteUrlOrId: string) {
+    let siteUrl = GetSiteUrl(siteUrlOrId);
+    try {
+        let url = `${siteUrl}/_api/web/rootFolder`;
+        let response = await GetJson<IFolderInfo>(url, null, {
+            method: "GET",
+            jsonMetadata: jsonTypes.nometadata
+        });
+        if (!isNullOrUndefined(response) && response.Exists && !isNullOrEmptyString(response.WelcomePage)) {
+            return response.WelcomePage;
+        }
+    } catch {
+    }
+    return null;
+}
+
+export async function SetWelcomePage(siteUrlOrId: string, welcomePage: string) {
+    let siteUrl = GetSiteUrl(siteUrlOrId);
+    try {
+        let url = `${siteUrl}/_api/web/rootFolder`;
+        let response = await GetJson<{ "odata.null": boolean } | string>(
+            url,
+            JSON.stringify({
+                WelcomePage: welcomePage
+            }),
+            {
+                method: "POST",
+                xHttpMethod: "MERGE",
+                jsonMetadata: jsonTypes.nometadata,
+                includeDigestInPost: true
+            });
+        return !isNullOrUndefined(response) && response["odata.null"] === true || isNullOrEmptyString(response);
+    } catch {
+    }
+    return false;
 }
