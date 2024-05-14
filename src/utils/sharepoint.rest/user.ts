@@ -1,4 +1,4 @@
-import { IGroupInfo, ISPPeoplePickerControlFormEntity, IUserInfo, IsSPPeoplePickerControlFormEntity, PrincipalType, contentTypes, encodeURIComponentEX, getPrincipalTypeFromPickerEntity, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, jsonStringify, jsonTypes } from "../_dependencies";
+import { IGroupInfo, ISPPeoplePickerControlFormEntity, ISiteGroupInfo, IUserInfo, IsSPPeoplePickerControlFormEntity, PrincipalType, contentTypes, encodeURIComponentEX, getPrincipalTypeFromPickerEntity, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, jsonStringify, jsonTypes } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl } from "./common";
@@ -406,22 +406,9 @@ export function GetInfoFromSPPeoplePickerControlFormEntity(entity: ISPPeoplePick
     return null;
 }
 
-interface ICreateSiteGroupResult {
-    Id: number,
-    IsHiddenInUI: boolean,//false,
-    LoginName: string,
-    Title: string,
-    PrincipalType: PrincipalType.SharePointGroup,
-    AllowMembersEditMembership: boolean,//false,
-    AllowRequestToJoinLeave: boolean,//false,
-    AutoAcceptRequestToJoinLeave: boolean,//false,
-    Description: string,//"Admins can change site settings, permissions, perform updates, import and export",
-    OnlyAllowMembersViewMembership: boolean,//true,
-    OwnerTitle: string//"Shai Petel"
-}
-export async function CreateSiteGroup(siteUrl: string, info: { name: string, description: string }): Promise<ICreateSiteGroupResult> {
+export async function CreateSiteGroup(siteUrl: string, info: { name: string, description: string }): Promise<ISiteGroupInfo> {
     let url = `${GetRestBaseUrl(siteUrl)}/web/siteGroups`;
-    let createGroup = await GetJson<{ d: ICreateSiteGroupResult }>(url, jsonStringify({
+    let createGroup = await GetJson<{ d: ISiteGroupInfo }>(url, jsonStringify({
         __metadata: {
             type: "SP.Group"
         },

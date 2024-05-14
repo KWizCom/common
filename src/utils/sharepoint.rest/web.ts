@@ -1,4 +1,4 @@
-import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IFolderInfo, IGroupInfo, IRententionLabel, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeFullUrl, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
+import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IFolderInfo, IGroupInfo, IRententionLabel, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteGroupInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeFullUrl, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { toIsoDateFormat } from "../date";
 import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, noLocalCache, shortLocalCache, weeekLongLocalCache } from "../rest";
@@ -7,24 +7,24 @@ import { GetListFields, GetListFieldsSync, GetListRestUrl } from "./list";
 
 const logger = ConsoleLogger.get("SharePoint.Rest.Web");
 
-export function GetSiteInfo(siteUrl?: string): Promise<ISiteInfo> {
+export async function GetSiteInfo(siteUrl?: string): Promise<ISiteInfo> {
     siteUrl = GetSiteUrl(siteUrl);
 
-    return GetJson<{ d: { Id: string; ServerRelativeUrl: string; }; }>(GetRestBaseUrl(siteUrl) + "/site?$select=id,serverRelativeUrl", null, { ...longLocalCache })
-        .then(r => {
-            var id = normalizeGuid(r.d.Id);
-            var serverRelativeUrl = normalizeUrl(r.d.ServerRelativeUrl);
-            if (isNullOrEmptyString(serverRelativeUrl)) serverRelativeUrl = "/";//can't return "" since it will be treated as current sub site, when tyring to access the root site from a sub-site
-            //console.log("site id: " + id);
-            return { Id: id, ServerRelativeUrl: serverRelativeUrl };
-        })
-        .catch<ISiteInfo>(() => null);
+    try {
+        const r = await GetJson<{ d: ISiteInfo; }>(GetRestBaseUrl(siteUrl) + "/site?$select=id,serverRelativeUrl", null, { ...longLocalCache });
+        var id = normalizeGuid(r.d.Id);
+        var serverRelativeUrl = normalizeUrl(r.d.ServerRelativeUrl);
+        if (isNullOrEmptyString(serverRelativeUrl)) serverRelativeUrl = "/"; //can't return "" since it will be treated as current sub site, when tyring to access the root site from a sub-site
+        return { Id: id, ServerRelativeUrl: serverRelativeUrl };
+    } catch {
+        return null;
+    }
 }
 
 export function GetSiteInfoSync(siteUrl?: string): ISiteInfo {
     siteUrl = GetSiteUrl(siteUrl);
 
-    let result = GetJsonSync<{ d: { Id: string; ServerRelativeUrl: string; }; }>(GetRestBaseUrl(siteUrl) + "/site?$select=id,serverRelativeUrl", null, { ...longLocalCache });
+    let result = GetJsonSync<{ d: ISiteInfo; }>(GetRestBaseUrl(siteUrl) + "/site?$select=id,serverRelativeUrl", null, { ...longLocalCache });
     if (result.success) {
         var id = normalizeGuid(result.result.d.Id);
         var serverRelativeUrl = normalizeUrl(result.result.d.ServerRelativeUrl);
@@ -91,7 +91,7 @@ export function GetSiteIdSync(siteUrl?: string): string {
 export function GetRootWebInfo(siteUrl?: string): Promise<IRootWebInfo> {
     siteUrl = GetSiteUrl(siteUrl);
 
-    return GetJson<{ d: { Id: string; ServerRelativeUrl: string; }; }>(GetRestBaseUrl(siteUrl) + "/site/rootWeb?$select=id,serverRelativeUrl", null, { ...longLocalCache })
+    return GetJson<{ d: IRootWebInfo; }>(GetRestBaseUrl(siteUrl) + "/site/rootWeb?$select=id,serverRelativeUrl", null, { ...longLocalCache })
         .then(r => {
             var id = normalizeGuid(r.d.Id);
             var serverRelativeUrl = normalizeUrl(r.d.ServerRelativeUrl);
@@ -1269,4 +1269,21 @@ export async function SetWelcomePage(siteUrlOrId: string, welcomePage: string) {
     } catch {
     }
     return false;
+}
+/** Get web associated groups */
+export async function GetWebAssociatedGroups(siteUrl?: string) {
+    siteUrl = GetSiteUrl(siteUrl);
+
+    let restUrl = `${GetRestBaseUrl(siteUrl)}/web?$select=AssociatedOwnerGroup,AssociatedMemberGroup,AssociatedVisitorGroup&$expand=AssociatedOwnerGroup,AssociatedMemberGroup,AssociatedVisitorGroup`;
+    try {
+        let result = await GetJson<{
+            AssociatedMemberGroup: ISiteGroupInfo;
+            AssociatedOwnerGroup: ISiteGroupInfo;
+            AssociatedVisitorGroup: ISiteGroupInfo;
+        }
+        >(restUrl, null, { ...longLocalCache, jsonMetadata: jsonTypes.nometadata });
+        return result;
+    } catch {
+    }
+    return null;
 }

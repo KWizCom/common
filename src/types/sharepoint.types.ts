@@ -367,7 +367,7 @@ export interface ISiteGroupInfo {
     LoginName: string;
     OnlyAllowMembersViewMembership: boolean;
     OwnerTitle: string;
-    PrincipalType: number;
+    PrincipalType: PrincipalType.SharePointGroup;
     RequestToJoinLeaveEmailSetting: string | null;
     Title: string;
 }
