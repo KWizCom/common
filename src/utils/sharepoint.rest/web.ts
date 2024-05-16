@@ -1,4 +1,4 @@
-import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IFolderInfo, IGroupInfo, IRententionLabel, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteGroupInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeFullUrl, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
+import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IFolderInfo, IGroupInfo, IRententionLabel, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteGroupInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumeric, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeFullUrl, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { toIsoDateFormat } from "../date";
 import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, noLocalCache, shortLocalCache, weeekLongLocalCache } from "../rest";
@@ -952,6 +952,48 @@ function _getCustomActionsBaseRestUrl(siteUrl?: string, options: { listId?: stri
     return restUrl;
 }
 
+function _parseCustomActionReponse(action: IUserCustomActionInfo) {
+    if (isNullOrUndefined(action)) {
+        return action;
+    }
+
+    if (!isNullOrUndefined(action.Rights)) {
+        if (isNumeric(action.Rights.High)) {
+            action.Rights.High = Number(action.Rights.High)
+        }
+        if (isNumeric(action.Rights.Low)) {
+            action.Rights.Low = Number(action.Rights.Low);
+        }
+    }
+    return action;
+}
+
+function _convertCustomActionToPostData(action: Omit<Partial<IUserCustomActionInfo>, "Id">) {
+    //The rest end point expects the rights in string format for some odd reason despite IBasePermissions being stored
+    //as High/Low numbers and the methods using numbers (ie. SPBasePermission). Even EffectiveBasePermissions on
+    //a list are stored using numbers.
+    let hasRights = !isNullOrUndefined(action.Rights);
+    let partialAction: {
+        Rights: {
+            High: string;
+            Low: string;
+        };
+    };
+    if (hasRights) {
+        partialAction = {
+            Rights: {
+                High: `${action.Rights.High}`,
+                Low: `${action.Rights.Low}`
+            }
+        };
+        delete action.Rights;
+    }
+
+    let data = { ...action, ...partialAction };
+
+    return data;
+}
+
 /** Get UserCustomActions for web/list */
 export async function GetUserCustomActions(siteUrl: string, listId?: string, allowCache = true): Promise<IUserCustomActionInfo[]> {
     let restUrl = _getCustomActionsBaseRestUrl(siteUrl, { listId: listId });
@@ -960,8 +1002,16 @@ export async function GetUserCustomActions(siteUrl: string, listId?: string, all
         jsonMetadata: jsonTypes.nometadata,
         ...cacheOptions
     };
-    let result = await GetJson<{ value: IUserCustomActionInfo[]; }>(restUrl, null, restOptions);
-    return result && result.value || null;
+
+    try {
+        let response = await GetJson<{ value: IUserCustomActionInfo[]; }>(restUrl, null, restOptions);
+        if (!isNullOrUndefined(response) && !isNullOrEmptyArray(response.value)) {
+            return response.value.map(_parseCustomActionReponse);
+        }
+    } catch {
+    }
+
+    return [];
 }
 
 /** Get UserCustomAction by id from web/list */
@@ -973,10 +1023,13 @@ export async function GetUserCustomActionById(siteUrl: string, customActionId: s
         ...cacheOptions
     };
     try {
-        let result = await GetJson<IUserCustomActionInfo>(restUrl, null, restOptions);
-        return result || null;
+        let response = await GetJson<IUserCustomActionInfo>(restUrl, null, restOptions);
+        if (!isNullOrUndefined(response)) {
+            return _parseCustomActionReponse(response)
+        }
     } catch {
     }
+
     return null;
 }
 
@@ -989,10 +1042,13 @@ export async function GetUserCustomActionByName(siteUrl: string, name: string, l
         ...cacheOptions
     };
     try {
-        let result = await GetJson<{ value: IUserCustomActionInfo[]; }>(restUrl, null, restOptions);
-        return result && result.value || [];
+        let response = await GetJson<{ value: IUserCustomActionInfo[]; }>(restUrl, null, restOptions);
+        if (!isNullOrUndefined(response) && !isNullOrEmptyArray(response.value)) {
+            return response.value.map(_parseCustomActionReponse);
+        }
     } catch {
     }
+
     return [];
 }
 
@@ -1001,14 +1057,20 @@ export async function AddUserCustomAction(siteUrl: string, userCustomActionInfo:
     let restUrl = _getCustomActionsBaseRestUrl(siteUrl, { listId: listId });
     let restOptions: IRestOptions = {
         jsonMetadata: jsonTypes.nometadata,
-        method: "POST"
-    };
+        method: "POST",
+        includeDigestInPost: true
+    };    
 
     try {
-        let result = await GetJson<IUserCustomActionInfo>(restUrl, JSON.stringify(userCustomActionInfo), restOptions);
-        return result || null;
+        let data = _convertCustomActionToPostData(userCustomActionInfo);
+
+        let response = await GetJson<IUserCustomActionInfo>(restUrl, JSON.stringify(data), restOptions);
+        if (!isNullOrUndefined(response)) {
+            return _parseCustomActionReponse(response);
+        }
     } catch {
     }
+
     return null;
 }
 
@@ -1018,13 +1080,16 @@ export async function UpdateUserCustomAction(siteUrl: string, customActionId: st
     let restOptions: IRestOptions = {
         jsonMetadata: jsonTypes.nometadata,
         method: "POST",
-        xHttpMethod: "MERGE"
+        xHttpMethod: "MERGE",
+        includeDigestInPost: true
     };
     try {
-        let result = await GetJson<{ "odata.null": boolean } | string>(restUrl, JSON.stringify(userCustomActionInfo), restOptions);
+        let data = _convertCustomActionToPostData(userCustomActionInfo);
+        let result = await GetJson<{ "odata.null": boolean } | string>(restUrl, JSON.stringify(data), restOptions);
         return !isNullOrUndefined(result) && result["odata.null"] === true || isNullOrEmptyString(result);
     } catch {
     }
+
     return false;
 }
 
@@ -1034,7 +1099,8 @@ export async function DeleteUserCustomAction(siteUrl: string, customActionId: st
     let restOptions: IRestOptions = {
         jsonMetadata: jsonTypes.nometadata,
         method: "POST",
-        xHttpMethod: "DELETE"
+        xHttpMethod: "DELETE",
+        includeDigestInPost: true
     };
     try {
         let result = await GetJson<{ "odata.null": boolean } | string>(restUrl, null, restOptions);
