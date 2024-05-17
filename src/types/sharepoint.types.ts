@@ -1323,6 +1323,8 @@ export type AttachmentFilesRESTValue = {
 };
 
 interface _spPageContextInfo {
+    aadTenantId: string; // Tennatn ID
+    portalUrl: string;
     alertsEnabled: boolean; // true
     allowSilverlightPrompt: string; // "True"
     blockDownloadsExperienceEnabled: boolean; // true
