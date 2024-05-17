@@ -59,6 +59,16 @@ function _getSiteIdFromContext(siteUrl?: string) {
     return null;
 }
 
+/** Get tenant id lower case no {} */
+export function GetTenantId() {
+    return normalizeGuid(_spPageContextInfo.aadTenantId);
+}
+
+/** Get tenant id lower case no {} */
+export function GetPortalUrl() {
+    return _spPageContextInfo.portalUrl;
+}
+
 /** Get site id lower case no {} */
 export async function GetSiteId(siteUrl?: string): Promise<string> {
     let siteId = _getSiteIdFromContext(siteUrl);
