@@ -60,7 +60,10 @@ export async function GetCurrentUser(siteUrl?: string, options?: { expandGroups:
         .catch<IUserInfo>(() => null);
 }
 
-export function GetCurrentUserSync(siteUrl?: string, options?: { expandGroups: boolean; }): IUserInfo {
+export function GetCurrentUserSync(siteUrl?: string, options?: {
+    /** expand groups only includes SP groups the user is a direct member of. It does not include groups associated through a security group membership, teams or M365 group */
+    expandGroups: boolean;
+}): IUserInfo {
     siteUrl = GetSiteUrl(siteUrl);
 
     let res = GetJsonSync<IUserInfo>(_getCurrentUserRequestUrl(siteUrl, options && options.expandGroups), null,
@@ -82,7 +85,10 @@ function _getUserRequestUrl(siteUrl: string, userId: number, expandGroups: boole
     return url;
 }
 
-export async function GetUser(siteUrl?: string, userId?: number, options?: { expandGroups: boolean; }): Promise<IUserInfo> {
+export async function GetUser(siteUrl?: string, userId?: number, options?: {
+    /** expand groups only includes SP groups the user is a direct member of. It does not include groups associated through a security group membership, teams or M365 group */
+    expandGroups: boolean;
+}): Promise<IUserInfo> {
     siteUrl = GetSiteUrl(siteUrl);
 
     if (isNullOrNaN(userId) || __currentUserId === userId) return GetCurrentUser(siteUrl, options);
