@@ -1,11 +1,12 @@
 import { FieldTypeAsString, FieldTypes, IDictionary, IFieldCalculatedInfo, IFieldInfo, IFieldInfoEX, IFieldJsonSchema, IFieldTaxonomyInfo, PrincipalType, RententionLabelFieldValueType, SPBasePermissionKind, ThumbnailValueType, UrlValueType, UserEntityValueType } from "./_dependencies";
+import { waitFor } from "./browser";
 import { firstOrNull, forEach } from "./collections.base";
 import { deleteCookie, getCookie, setCookie } from "./cookies";
 import { isValidEmail } from "./emails";
 import { jsonParse } from "./json";
 import { hasOwnProperty } from "./objects";
 import { isValidDomainLogin, normalizeGuid } from "./strings";
-import { isNotEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumeric, isString, isUndefined, isValidGuid } from "./typecheckers";
+import { isNotEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumeric, isString, isTypeofFullNameUndefined, isUndefined, isValidGuid } from "./typecheckers";
 import { normalizeUrl } from "./url";
 
 export const KWIZ_CONTROLLER_FIELD_NAME = "kwizcomcontrollerfield";
@@ -693,4 +694,20 @@ export function isNumberFieldType(fieldInfo: IFieldInfoEX) {
         || targetColumnOutputType === "Number"
         || targetColumnOutputType === "Counter"
         || targetColumnOutputType === "Integer";
-};
+}
+
+export async function isSharePointOnline() {
+    let url = new URL(window.location.href);
+    //Most cases are satisfied by this check. Very few customers have custom domains for SharePoint online.
+    if (url.host.toLowerCase().endsWith(".sharepoint.com")) {
+        return true;
+    }
+
+    let contextReady = await waitFor(() => {
+        return !isTypeofFullNameUndefined("_spPageContextInfo");
+    });
+
+    if (contextReady) {
+        return _spPageContextInfo.isSPO === true;
+    }
+}
