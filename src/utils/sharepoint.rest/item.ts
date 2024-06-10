@@ -523,17 +523,17 @@ export async function ListItemHasUniquePermissions(siteUrl: string, listIdOrTitl
 }
 export async function RestoreListItemPermissionInheritance(siteUrl: string, listIdOrTitle: string, itemId: number): Promise<void> {
     let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/items(${itemId})/ResetRoleInheritance`;
-    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata, spWebUrl: siteUrl });
 }
 export async function BreakListItemPermissionInheritance(siteUrl: string, listIdOrTitle: string, itemId: number, clear = true): Promise<void> {
     let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/items(${itemId})/breakroleinheritance(copyRoleAssignments=${clear ? 'false' : 'true'}, clearSubscopes=true)`;
-    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata, spWebUrl: siteUrl });
 }
 export async function AssignListItemPermission(siteUrl: string, listIdOrTitle: string, itemId: number, principalId: number, roleId: number) {
     let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/items(${itemId})/roleassignments/addroleassignment(principalid=${principalId},roleDefId=${roleId})`;
-    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata, spWebUrl: siteUrl });
 }
 export async function RemoveListItemPermission(siteUrl: string, listIdOrTitle: string, itemId: number, principalId: number, roleId: number) {
     let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/items(${itemId})/roleassignments/removeroleassignment(principalid=${principalId},roleDefId=${roleId})`;
-    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata, spWebUrl: siteUrl });
 }

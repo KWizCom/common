@@ -1098,19 +1098,19 @@ export async function ListHasUniquePermissions(siteUrl: string, listIdOrTitle: s
 }
 export async function RestoreListPermissionInheritance(siteUrl: string, listIdOrTitle: string): Promise<void> {
     let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/ResetRoleInheritance`;
-    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata, spWebUrl: siteUrl });
 }
 export async function BreakListPermissionInheritance(siteUrl: string, listIdOrTitle: string, clear = true): Promise<void> {
     let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/breakroleinheritance(copyRoleAssignments=${clear ? 'false' : 'true'}, clearSubscopes=true)`;
-    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata, spWebUrl: siteUrl });
 }
 export async function AssignListPermission(siteUrl: string, listIdOrTitle: string, principalId: number, roleId: number) {
     let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/roleassignments/addroleassignment(principalid=${principalId},roleDefId=${roleId})`;
-    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata, spWebUrl: siteUrl });
 }
 export async function RemoveListPermission(siteUrl: string, listIdOrTitle: string, principalId: number, roleId: number) {
     let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/roleassignments/removeroleassignment(principalid=${principalId},roleDefId=${roleId})`;
-    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata });
+    await GetJson(url, undefined, { method: "POST", allowCache: false, jsonMetadata: jsonTypes.nometadata, spWebUrl: siteUrl });
 }
 
 interface iCreateListResult {
