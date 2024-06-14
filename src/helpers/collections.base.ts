@@ -215,7 +215,7 @@ export function sizeOf(obj: any) {
 }
 
 export function chunkArray<T>(array: T[], chunkSize: number) {
-    var chunkedArray: T[][] = [];
+    let chunkedArray: T[][] = [];
     for (var i = 0; i < array.length; i += chunkSize) {
         chunkedArray.push(array.slice(i, i + chunkSize));
     }

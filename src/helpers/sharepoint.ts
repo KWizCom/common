@@ -6,8 +6,8 @@ import { isValidEmail } from "./emails";
 import { jsonParse } from "./json";
 import { hasOwnProperty } from "./objects";
 import { isValidDomainLogin, normalizeGuid } from "./strings";
-import { isNotEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumeric, isString, isTypeofFullNameUndefined, isUndefined, isValidGuid } from "./typecheckers";
-import { normalizeUrl } from "./url";
+import { isNotEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, isNumeric, isString, isTypeofFullNameUndefined, isUndefined, isValidGuid } from "./typecheckers";
+import { makeServerRelativeUrl, normalizeUrl } from "./url";
 
 export const KWIZ_CONTROLLER_FIELD_NAME = "kwizcomcontrollerfield";
 const MODERN_EXPERIENCE_COOKIE_NAME = "splnu";
@@ -491,15 +491,29 @@ export function EnsureViewFields(camlQuery: string, fields: string[], forceCreat
 }
 
 /**If it is a thumbnail field - parse and return a typed value */
-export function ParseThumbnalFieldValue(value?: any): ThumbnailValueType {
+export function ParseThumbnalFieldValue(value?: string, context?: {
+    itemId: number;
+    rootFolder: string;    
+}): ThumbnailValueType {
     if (!isNullOrEmptyString(value)) {
         try {
             let parsed = jsonParse<ThumbnailValueType>(value);
-            if (parsed && !isNullOrEmptyString(parsed.serverRelativeUrl))
+
+            if (isNullOrUndefined(parsed)) {
+                return null;
+            }
+
+            if (!isNullOrEmptyString(parsed.serverRelativeUrl)) {
                 return parsed;
-
+            } else if (!isNullOrEmptyString(parsed.fileName)
+                && !isNullOrUndefined(context)
+                && isNumber(context.itemId)
+                && !isNullOrEmptyString(context.rootFolder)) {
+                let { itemId, rootFolder } = context;                             
+                parsed.serverRelativeUrl = `${makeServerRelativeUrl(rootFolder)}/Attachments/${itemId}/${parsed.fileName}`
+                return parsed;
+            }
         } catch (e) {
-
         }
     }
     return null;
@@ -710,4 +724,20 @@ export async function isSharePointOnline() {
     if (contextReady) {
         return _spPageContextInfo.isSPO === true;
     }
+
+    return null;
+}
+
+export async function isSharePointOnlineSync() {
+    let url = new URL(window.location.href);
+    //Most cases are satisfied by this check. Very few customers have custom domains for SharePoint online.
+    if (url.host.toLowerCase().endsWith(".sharepoint.com")) {
+        return true;
+    }
+
+    if(!isTypeofFullNameUndefined("_spPageContextInfo")){
+        return _spPageContextInfo.isSPO === true;
+    }   
+    
+    return null;
 }

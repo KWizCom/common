@@ -255,15 +255,17 @@ async function _processLookupThresholdCamlRequest(
 
     let otherFieldNames = options.columns.filter((columnName) => {
         let field = allListFieldsHash[columnName];
-        let exists = !isNullOrUndefined(field);
-        let isLookupField = exists && _isLookupOrUserField(field);
-        let isInOrderBy = exists && firstOrNull(orderByFields, (orderByField) => orderByField.InternalName === field.InternalName) !== null
-        return exists && !isLookupField && !isInOrderBy;
+        return !isNullOrUndefined(field) && !_isLookupOrUserField(field);       
     });
-
-    //Split the requests into equally chunked arrays based on the lookup field count
-    //add lookup fields in chunk but leave room to add lookup fields from the order by statement 
-    //since they are mandatory    
+    
+    //The number of lookup columns in each request is based on the lookupOrUserFieldLimit.     
+    //Lookup fields in the order by statement must be sent with each request.
+    //For example, we have 20 lookup columns and 3 of them are in the order by statement.
+    //The 3 order by lookup columns are sent with each request. The remaining lookups are split into chunks.    
+    //The request will split into 3 requests
+    //The first request will have 11 lookup columns (8 standard + 3 order by lookup columns)
+    //The second request will have 11 lookup columns (8 standard + 3 order by lookup columns)
+    //The third request will have 4 lookup columns (1 standard + 3 order by lookup columns)
     let requestChunks = chunkArray(lookupOrUserFieldsToChunk, lookupOrUserFieldLimit - lookupOrUserFieldsInOrderBy.length);
     let otherFieldsChunkSize = Math.ceil(otherFieldNames.length / requestChunks.length);
     let otherFieldsChunks = chunkArray(otherFieldNames, otherFieldsChunkSize);
