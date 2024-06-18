@@ -401,10 +401,11 @@ export function UserHasPermissionsSync(siteUrlOrId: string, listIdOrTitle: strin
 }
 
 /** create a new column and try to add it to default view. Send either Title and Type, or SchemaXml. Create with SchemaXml also adds to all content types */
-export function CreateField(siteUrl: string, listIdOrTitle: string, options: {
+export async function CreateField(siteUrl: string, listIdOrTitle: string, options: {
     Title?: string;
     Type?: FieldTypes;
     Required?: boolean;
+    Indexed?: boolean;
     SchemaXml?: string;
     SchemaXmlSpecificInternalName?: boolean;
     SkipAddToDefaultView?: boolean;
@@ -415,32 +416,33 @@ export function CreateField(siteUrl: string, listIdOrTitle: string, options: {
 }): Promise<IFieldInfoEX> {
     siteUrl = GetSiteUrl(siteUrl);
 
-    let finish = async (result: { d: IFieldInfo; }) => {
-        if (result && result.d) {
-            let internalName = result.d.InternalName;
-            //we need to clear and reload the list fields cache, so call it and return our field from that collection.
-            let fields = await GetListFields(siteUrl, listIdOrTitle, { refreshCache: true });
-
-            try {
-                if (options.SkipAddToDefaultView !== true) {
-                    //try to add it to default view, don't wait for it
-                    GetListViews(siteUrl, listIdOrTitle).then(views => {
-                        let defaultView = firstOrNull(views, v => v.DefaultView);
-                        if (defaultView)
-                            GetJson(GetListRestUrl(siteUrl, listIdOrTitle) + `/views('${defaultView.Id}')/ViewFields/addViewField('${internalName}')`, null, { method: "POST", spWebUrl: siteUrl });
-                    });
-                }
-            }
-            catch (e) { }
-
-            return firstOrNull(fields, f => f.InternalName === internalName);
+    let finish = async (result: IFieldInfo) => {
+        if (!result) {
+            return null;
         }
-        return null;
+
+        let internalName = result.InternalName;
+        //we need to clear and reload the list fields cache, so call it and return our field from that collection.
+        let fields = await GetListFields(siteUrl, listIdOrTitle, { refreshCache: true });
+
+        try {
+            if (options.SkipAddToDefaultView !== true) {
+                //try to add it to default view, don't wait for it
+                GetListViews(siteUrl, listIdOrTitle).then(views => {
+                    let defaultView = firstOrNull(views, v => v.DefaultView);
+                    if (defaultView)
+                        GetJson(GetListRestUrl(siteUrl, listIdOrTitle) + `/views('${defaultView.Id}')/ViewFields/addViewField('${internalName}')`, null, { method: "POST", spWebUrl: siteUrl });
+                });
+            }
+        }
+        catch (e) { }
+
+        return firstOrNull(fields, f => f.InternalName === internalName);
     };
 
     if (!isNullOrEmptyString(options.SchemaXml)) {
-        return GetJson<{ d: IFieldInfo; }>(GetListRestUrl(siteUrl, listIdOrTitle) + `/fields/createFieldAsXml`,
-            JSON.stringify({
+        try {
+            let updateObject: IDictionary<any> = {
                 'parameters': {
                     '__metadata': { 'type': 'SP.XmlSchemaFieldCreationInformation' },
                     'SchemaXml': options.SchemaXml,
@@ -448,32 +450,51 @@ export function CreateField(siteUrl: string, listIdOrTitle: string, options: {
                         4 ://SP.AddFieldOptions.addToAllContentTypes
                         4 | 8//SP.AddFieldOptions.addToAllContentTypes | addFieldInternalNameHint
                 }
-            }))
-            .then(r => {
-                return finish(r);
-            })
-            .catch<IFieldInfoEX>(() => null);
-    }
-    else if (!isNullOrEmptyString(options.Title) && !isNullOrUndefined(options.Type)) {
+            };
+            let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/fields/createFieldAsXml`;
+            let newFieldResult = await GetJson<{ d: IFieldInfo; }>(url, JSON.stringify(updateObject));
+
+            if (!isNullOrUndefined(newFieldResult)
+                && !isNullOrUndefined(newFieldResult.d)) {
+                if ((!isNullOrEmptyString(options.Title) && options.Title !== newFieldResult.d.Title)
+                    || (isBoolean(options.Indexed) && options.Indexed !== newFieldResult.d.Indexed)) {
+                    let updatedField = await UpdateField(siteUrl, listIdOrTitle, newFieldResult.d.InternalName, {
+                        Title: options.Title,
+                        Indexed: options.Indexed === true
+                    });
+                    return finish(updatedField);
+                }
+            }
+
+            return finish(newFieldResult && newFieldResult.d);
+        } catch {
+        }
+        return null;
+    } else if (!isNullOrEmptyString(options.Title) && !isNullOrUndefined(options.Type)) {
         let updateObject: IDictionary<any> = {
             '__metadata': { 'type': 'SP.Field' },
             'Title': options.Title,
             'FieldTypeKind': options.Type,
-            'Required': options.Required === true
+            'Required': options.Required === true,
+            'Indexed': options.Indexed === true
         };
-        if (!isNullOrEmptyString(options.ClientSideComponentId))
+        if (!isNullOrEmptyString(options.ClientSideComponentId)) {
             updateObject.ClientSideComponentId = options.ClientSideComponentId;
-        if (!isNullOrEmptyString(options.ClientSideComponentProperties))
+        }
+        if (!isNullOrEmptyString(options.ClientSideComponentProperties)) {
             updateObject.ClientSideComponentProperties = options.ClientSideComponentProperties;
-        if (!isNullOrEmptyString(options.JSLink))
+        }
+        if (!isNullOrEmptyString(options.JSLink)) {
             updateObject.JSLink = options.JSLink;
+        }
 
-        return GetJson<{ d: IFieldInfo; }>(GetListRestUrl(siteUrl, listIdOrTitle) + `/fields`,
-            JSON.stringify(updateObject))
-            .then(r => {
-                return finish(r);
-            })
-            .catch<IFieldInfoEX>(() => null);
+        try {
+            let url = `${GetListRestUrl(siteUrl, listIdOrTitle)}/fields`;
+            let newFieldResult = await GetJson<{ d: IFieldInfo; }>(url, JSON.stringify(updateObject));
+            return finish(newFieldResult && newFieldResult.d);
+        } catch {
+        }
+        return null;
     }
     else {
         console.error("You must send either SchemaXml or Title and Type");
@@ -483,6 +504,9 @@ export function CreateField(siteUrl: string, listIdOrTitle: string, options: {
 /** Update field SchemaXml OR Title, only 1 update at a time supported. */
 export async function UpdateField(siteUrlOrId: string, listIdOrTitle: string, fieldInternalName: string, options: {
     Title?: string;
+    Indexed?: boolean;
+    /** Update 'Choices' propertry on 'Choice' and 'MultiChoice' field types. */
+    Choices?: string[];
     SchemaXml?: string;
     FieldType?: FieldTypeAsString;
     Required?: boolean;
@@ -499,6 +523,9 @@ export async function UpdateField(siteUrlOrId: string, listIdOrTitle: string, fi
         return firstOrNull(fields, f => f.InternalName === fieldInternalName);
     };
 
+    let fields = await GetListFieldsAsHash(siteUrl, listIdOrTitle, true);
+    let thisField = fields[fieldInternalName];
+
     //updates can either be SchemaXml, or others. Cannot be both.
     let updates: IDictionary<any> = {
         '__metadata': { 'type': 'SP.Field' }
@@ -509,7 +536,6 @@ export async function UpdateField(siteUrlOrId: string, listIdOrTitle: string, fi
     }
     else {
         //cannot send schema updates with other updates.
-
         if (!isNullOrEmptyString(options.Title)) {
             updates.Title = options.Title;
         }
@@ -518,6 +544,18 @@ export async function UpdateField(siteUrlOrId: string, listIdOrTitle: string, fi
         }
         if (isBoolean(options.Required)) {
             updates.Required = options.Required === true;
+        }
+        if (isBoolean(options.Indexed)) {
+            updates.Indexed = options.Indexed === true;
+        }
+        if (!isNullOrEmptyArray(options.Choices)) {
+            let choiceType = options.FieldType || thisField.TypeAsString;
+            if (choiceType === "Choice" || choiceType === "MultiChoice") {
+                updates["__metadata"]["type"] = choiceType === "Choice" ? "SP.FieldChoice" : "SP.FieldMultiChoice"
+                updates.Choices = { "results": options.Choices };
+            } else {
+                logger.warn("Can only update 'Choices' property on 'Choice' and 'MultiChoice' field types.");
+            }
         }
         if (isBoolean(options.Hidden)) {
             //this requries the CanToggleHidden to be in the schema... if not - we will need to add it before we can update this.
