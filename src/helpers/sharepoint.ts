@@ -725,10 +725,10 @@ export async function isSharePointOnline() {
         return _spPageContextInfo.isSPO === true;
     }
 
-    return null;
+    return false;
 }
 
-export async function isSharePointOnlineSync() {
+export function isSharePointOnlineSync() {
     let url = new URL(window.location.href);
     //Most cases are satisfied by this check. Very few customers have custom domains for SharePoint online.
     if (url.host.toLowerCase().endsWith(".sharepoint.com")) {
@@ -739,5 +739,5 @@ export async function isSharePointOnlineSync() {
         return _spPageContextInfo.isSPO === true;
     }   
     
-    return null;
+    return false;
 }
