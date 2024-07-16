@@ -223,8 +223,10 @@ function getParsedResponse<T>(objects: IRequestObjects) {
     if (!isNullOrEmptyString(objects.options.responseType) && objects.options.responseType !== "text") {
         parsedResponse = objects.xhr.response;
     } else {
-        //maybe its not JSON?
-        parsedResponse = jsonParse(objects.xhr.responseText);
+        if (objects.options.responseType !== "text") {
+            //Only try to parse if caller didn't expect text explicitly
+            parsedResponse = jsonParse(objects.xhr.responseText);
+        }
         if (isNullOrUndefined(parsedResponse)) {
             parsedResponse = objects.xhr.responseText as any;
         }
