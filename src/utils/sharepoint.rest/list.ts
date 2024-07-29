@@ -706,12 +706,12 @@ export async function AddViewFieldToListView(siteUrl: string, listIdOrTitle: str
 }
 
 export function GetListContentTypes(siteUrl: string, listIdOrTitle: string,
-    options?: IGetContentTypesOptions, refreshCache = false): Promise<iContentType[]> {
+    options?: Omit<IGetContentTypesOptions, "listIdOrTitle" | "fromRooWeb">, refreshCache = false): Promise<iContentType[]> {
     return GetContentTypes(siteUrl, { ...(options || {}), listIdOrTitle: listIdOrTitle }, refreshCache);
 }
 
 export function GetListContentTypesSync(siteUrl: string, listIdOrTitle: string,
-    options?: IGetContentTypesOptions, refreshCache = false): iContentType[] {
+    options?: Omit<IGetContentTypesOptions, "listIdOrTitle" | "fromRooWeb">, refreshCache = false): iContentType[] {
     return GetContentTypesSync(siteUrl, { ...(options || {}), listIdOrTitle: listIdOrTitle }, refreshCache);
 }
 
