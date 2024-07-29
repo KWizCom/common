@@ -3,7 +3,7 @@ import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl, LIST_EXPAND, LIST_SELECT } from "./common";
 import { __fixGetListItemsResults } from "./listutils/common";
-import { GetContentTypes, GetContentTypesSync, GetListsSync } from "./web";
+import { GetContentTypes, GetContentTypesSync, GetListsSync, IGetContentTypesOptions } from "./web";
 
 const logger = ConsoleLogger.get("SharePoint.Rest.List");
 
@@ -706,21 +706,13 @@ export async function AddViewFieldToListView(siteUrl: string, listIdOrTitle: str
 }
 
 export function GetListContentTypes(siteUrl: string, listIdOrTitle: string,
-    options?: {
-        ignoreFolders?: boolean;
-        ignoreHidden?: boolean;
-        includeFields?: boolean;
-    }): Promise<iContentType[]> {
-    return GetContentTypes(siteUrl, { ...(options || {}), listIdOrTitle: listIdOrTitle });
+    options?: IGetContentTypesOptions, refreshCache = false): Promise<iContentType[]> {
+    return GetContentTypes(siteUrl, { ...(options || {}), listIdOrTitle: listIdOrTitle }, refreshCache);
 }
 
 export function GetListContentTypesSync(siteUrl: string, listIdOrTitle: string,
-    options?: {
-        ignoreFolders?: boolean;
-        ignoreHidden?: boolean;
-        includeFields?: boolean;
-    }): iContentType[] {
-    return GetContentTypesSync(siteUrl, { ...(options || {}), listIdOrTitle: listIdOrTitle });
+    options?: IGetContentTypesOptions, refreshCache = false): iContentType[] {
+    return GetContentTypesSync(siteUrl, { ...(options || {}), listIdOrTitle: listIdOrTitle }, refreshCache);
 }
 
 /** generic version. for the KWIZ forms version that supports action id call GetListFormUrlAppsWeb instead */

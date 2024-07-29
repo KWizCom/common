@@ -741,3 +741,23 @@ export function isSharePointOnlineSync() {
     
     return false;
 }
+
+export async function isAppWeb() {
+    let contextReady = await waitFor(() => {
+        return !isTypeofFullNameUndefined("_spPageContextInfo");
+    });
+
+    if (contextReady) {
+        return _spPageContextInfo.isAppWeb === true;
+    }
+
+    return false;
+}
+
+export function isAppWebSync() {
+    if(!isTypeofFullNameUndefined("_spPageContextInfo")){
+        return _spPageContextInfo.isAppWeb === true;
+    }   
+    
+    return false;
+}

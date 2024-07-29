@@ -233,7 +233,7 @@ function _postProcessGetContentTypes(contentTypes: iContentType[],
     return null;
 }
 
-export async function GetContentTypes(siteUrl: string, options: IGetContentTypesOptions = {}): Promise<iContentType[]> {
+export async function GetContentTypes(siteUrl: string, options: IGetContentTypesOptions = {}, refreshCache = false): Promise<iContentType[]> {
     let url = _getContentTypesRequestUrl(siteUrl, options);
 
     let allListFields: IFieldInfoEX[] = null;
@@ -242,7 +242,7 @@ export async function GetContentTypes(siteUrl: string, options: IGetContentTypes
         allListFields = await GetListFields(siteUrl, options.listIdOrTitle);
     }
 
-    return GetJson<{ value: iContentType[]; }>(url, null, { allowCache: true, jsonMetadata: jsonTypes.nometadata })
+    return GetJson<{ value: iContentType[]; }>(url, null, { allowCache: refreshCache !== true, jsonMetadata: jsonTypes.nometadata })
         .then(result => {
             if (!isNullOrUndefined(result)) {
                 return _postProcessGetContentTypes(result.value, options, allListFields);
@@ -252,7 +252,7 @@ export async function GetContentTypes(siteUrl: string, options: IGetContentTypes
         .catch<iContentType[]>(() => null);
 }
 
-export function GetContentTypesSync(siteUrl: string, options: IGetContentTypesOptions = {}): iContentType[] {
+export function GetContentTypesSync(siteUrl: string, options: IGetContentTypesOptions = {}, refreshCache = false): iContentType[] {
     let url = _getContentTypesRequestUrl(siteUrl, options);
 
     let allListFields: IFieldInfoEX[] = null;
@@ -261,7 +261,7 @@ export function GetContentTypesSync(siteUrl: string, options: IGetContentTypesOp
         allListFields = GetListFieldsSync(siteUrl, options.listIdOrTitle);
     }
 
-    let result = GetJsonSync<{ value: iContentType[]; }>(url, null, { allowCache: true, jsonMetadata: jsonTypes.nometadata });
+    let result = GetJsonSync<{ value: iContentType[]; }>(url, null, { allowCache: refreshCache !== true, jsonMetadata: jsonTypes.nometadata });
     if (!isNullOrUndefined(result) && result.success === true && !isNullOrUndefined(result.result)) {
         return _postProcessGetContentTypes(result.result.value, options, allListFields);
     }
