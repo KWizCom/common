@@ -1351,6 +1351,24 @@ export async function SearchList(siteUrl: string, listIdOrTitle: string, query: 
         return mapped;
     } catch (e) {
         logger.error(e);
-        return [];
     }
+
+    return [];
+}
+
+export async function UpdateListExperience(siteUrl: string, listId: string, experience: ListExperienceOptions) {
+    try {
+        let url = GetListRestUrl(siteUrl, listId);
+        let data = {
+            "ListExperienceOptions": experience
+        };
+        let result = await GetJson(url, JSON.stringify(data), {
+            xHttpMethod: "MERGE",
+            jsonMetadata: jsonTypes.nometadata
+        });
+        return isNullOrEmptyString(result);
+    } catch (e) {
+        logger.error(e);
+    }
+    return false;
 }
