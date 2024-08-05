@@ -146,7 +146,7 @@ export function getURLExtension(url: string) {//, baseUri?: string) {
 }
 
 export function isDataUrl(url: string) {
-    var REGEXP_DATA_URL = /^data:(?:.+?\/.+?)?(?:;.+?=.+?)*(?:;base64)?,.*$/;
+    let REGEXP_DATA_URL = /^data:(?:.+?\/.+?)?(?:;.+?=.+?)*(?:;base64)?,.*$/;
     return REGEXP_DATA_URL.test(url);
 }
 
@@ -155,17 +155,17 @@ export function setUrlKeyValue(keyName: string, keyValue: string, bEncode: boole
         url = window.location.href + "";
     }
 
-    var urlParams = new URLHelper(url);
+    let urlParams = new URLHelper(url);
     return urlParams.setQueryStringParam(keyName, keyValue, bEncode);
 }
 
-export function removeUrlKeyValue(keyName: string, url?: string) {
+export function removeUrlKeyValue(keyName: string, url?: string, bCaseInsensitive?: boolean) {
     if (!isString(url)) {
         url = window.location.href + "";
     }
 
-    var urlParams = new URLHelper(url);
-    return urlParams.removeQueryStringParam(keyName);
+    let urlParams = new URLHelper(url);
+    return urlParams.removeQueryStringParam(keyName, bCaseInsensitive);
 }
 
 /**

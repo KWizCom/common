@@ -1,6 +1,6 @@
 import assert from 'assert/strict';
 import test from 'node:test';
-import { makeFullUrl, parseHash, parseQueryString, } from './url';
+import { makeFullUrl, parseHash, parseQueryString, removeUrlKeyValue, setUrlKeyValue, } from './url';
 
 test('parseQueryString', t => {
     assert.deepEqual(parseQueryString(), {});
@@ -26,4 +26,19 @@ test('makeFullUrl', t => {
     assert.deepEqual(makeFullUrl("#hashnav", "http://foo"), "http://foo#hashnav");
     assert.deepEqual(makeFullUrl("#hashnav2", "http://foo#hashnav"), "http://foo#hashnav2");
     assert.deepEqual(makeFullUrl("#hashnav", "http://foo/page.aspx"), "http://foo/page.aspx#hashnav");
+});
+
+test('removeUrlKeyValue', t => {
+    let trueUrl = "https://www.domain.com/page.aspx?showindatasheet=true";
+    let falseUrl = "https://www.domain.com/page.aspx?showindatasheet=false";
+    let noParamUrl = "https://www.domain.com/page.aspx";
+
+    let output = removeUrlKeyValue("showindatasheet", trueUrl, true);
+    assert.deepEqual(output, noParamUrl);
+
+    output = removeUrlKeyValue("ShowInDataSheet", trueUrl, true);
+    assert.deepEqual(output, noParamUrl);
+
+    output = setUrlKeyValue("showindatasheet", "false", false, trueUrl);
+    assert.deepEqual(output, falseUrl)
 });
