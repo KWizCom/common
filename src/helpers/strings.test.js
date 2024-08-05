@@ -7,9 +7,26 @@ test('replaceAll', t => {
 
     //this failed since the input find included protected regex characters.
     //escapeRegExp needs to fix that
-    const source = "string with special regex[:(s:) chars";
-    const result = "string with special regex[~~(s~~) chars";
-    assert.strictEqual(replaceAll(source, source, result), result);
+    let string = "string with special regex[:(s:) chars";
+    let find = "regex[:(s:)";
+    let replace = "regex[~~(s~~)";
+    let result = "string with special regex[~~(s~~) chars";
+    assert.strictEqual(replaceAll(string, find, replace), result);
+
+    string = `To activate the KWIZ Forms feature in your list you should click the "KWIZ Forms Display Mode" button:
+
+![](https://kwizcom.sharepoint.com/sites/Docs/CMSResources/CMS365/Screenshot 2024-06-18 123120.jpg)
+
+Now select one "Side Panel" or "Full Page" for the display mode:`;
+    find = "https://kwizcom.sharepoint.com/sites/Docs/CMSResources/CMS365/Screenshot 2024-06-18 123120.jpg";
+    replace = "/sites/Docs/CMSResources/CMS365/Screenshot 2024-06-18 123120.jpg";
+    result = `To activate the KWIZ Forms feature in your list you should click the "KWIZ Forms Display Mode" button:
+
+![](/sites/Docs/CMSResources/CMS365/Screenshot 2024-06-18 123120.jpg)
+
+Now select one "Side Panel" or "Full Page" for the display mode:`;
+    assert.strictEqual(replaceAll(string, find, replace, true), result);
+
 });
 
 test('capitalizeFirstLetter', async t => {

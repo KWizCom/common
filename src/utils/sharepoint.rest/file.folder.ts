@@ -264,10 +264,13 @@ function reloadCacheFileModifiedRecently(siteUrl: string, fileServerRelativeUrl:
         try {
             $reloadCacheFileModifiedRecentlyFlagged.push(key);
 
-            let fileInfo = GetJsonSync<{ d: { TimeLastModified: string; }; }>(`${fileRestUrl}?$select=TimeLastModified`,
-                null, { allowCache: true });//only allow in-memory cache for this
+            let fileInfo = GetJsonSync<{ TimeLastModified: string; }>(`${fileRestUrl}?$select=TimeLastModified`,
+                null, {
+                allowCache: true,//only allow in-memory cache for this
+                jsonMetadata: jsonTypes.nometadata
+            });
             if (fileInfo.success && fileInfo.result) {
-                let modified = new Date(fileInfo.result.d.TimeLastModified);
+                let modified = new Date(fileInfo.result.TimeLastModified);
                 let now = new Date();
                 let difference = now.getTime() - modified.getTime();
                 if (difference < 5 * 60 * 1000) {
