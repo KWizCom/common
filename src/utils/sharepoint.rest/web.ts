@@ -1,6 +1,7 @@
 import { IAppTile, IContextWebInformation, IDictionary, IFieldInfoEX, IFolderInfo, IGroupInfo, IRententionLabel, IRestOptions, IRestRoleDefinition, IRootWebInfo, ISiteGroupInfo, ISiteInfo, ITimeZone, IUserCustomActionInfo, IUserInfo, IWebBasicInfo, IWebInfo, IWebRegionalSettings, SPBasePermissionKind, SPBasePermissions, WebTypes, extendFieldInfo, getGlobal, iContentType, iList, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumeric, isString, isTypeofFullNameNullOrUndefined, isValidGuid, jsonStringify, jsonTypes, makeFullUrl, makeServerRelativeUrl, normalizeGuid, normalizeUrl, sortArray } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { toIsoDateFormat } from "../date";
+import { AutoDiscoverTenantInfo } from "../exports-index";
 import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, noLocalCache, shortLocalCache, weeekLongLocalCache } from "../rest";
 import { CONTENT_TYPES_SELECT, CONTENT_TYPES_SELECT_WITH_FIELDS, GetRestBaseUrl, GetSiteUrl, LIST_EXPAND, LIST_SELECT, WEB_SELECT, hasGlobalContext } from "./common";
 import { GetListFields, GetListFieldsSync, GetListRestUrl } from "./list";
@@ -61,7 +62,16 @@ function _getSiteIdFromContext(siteUrl?: string) {
 
 /** Get tenant id lower case no {} */
 export function GetTenantId() {
-    return normalizeGuid(_spPageContextInfo.aadTenantId);
+    if (!isTypeofFullNameNullOrUndefined("_spPageContextInfo")) {
+        return normalizeGuid(_spPageContextInfo.aadTenantId);
+    }
+
+    let info = AutoDiscoverTenantInfo(true);
+    if(!isNullOrUndefined(info) && isValidGuid(info.idOrName)){
+        return normalizeGuid(info.idOrName);
+    }
+
+    return null;
 }
 
 /** Get tenant id lower case no {} */

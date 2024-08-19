@@ -1,68 +1,69 @@
 {
-  "name": "@kwiz/common",
-  "version": "1.0.54",
-  "description": "KWIZ common utilities and helpers for M365 platform",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
+    "name": "@kwiz/common",
+    "version": "1.0.54",
+    "description": "KWIZ common utilities and helpers for M365 platform",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
     },
-    "./package.json": "./package.json"
-  },
-  "scripts": {
-    "watch": "tsc -watch",
-    "build": "npm run reindex-project && npm run test && tsc",
-    "build-explain": "tsc --explainFiles",
-    "check-dependencies": "madge --circular ./src",
-    "create-link": "npm link",
-    "test": "node --import tsx --test src",
-    "npm-v-patch": "npm version patch",
-    "npm-v-major": "npm version major",
-    "npm-publish": "npm publish --access public",
-    "reset-repo": "git fetch origin && git reset --hard origin/main",
-    "reindex-project": "cti create ./src -i _dependencies -w -b -n -o exports-index.ts && node fix-folder-imports.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/KWizCom/common.git"
-  },
-  "keywords": [
-    "KWIZ",
-    "SharePoint",
-    "SPO",
-    "Teams",
-    "Utilities",
-    "Helpers"
-  ],
-  "author": "Shai Petel",
-  "contributors": [
-    "Shai Petel",
-    "Kevin Vieira"
-  ],
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/KWizCom/common/issues",
-    "email": "support@kwizcom.com"
-  },
-  "homepage": "https://github.com/KWizCom/common#readme",
-  "private": false,
-  "engines": {
-    "node": ">=16"
-  },
-  "packageManager": "npm@9.5.1",
-  "devDependencies": {
-    "create-ts-index": "^1.14.0",
-    "fs-extra": "^11.2.0",
-    "madge": "^6.1.0",
-    "tsx": "^4.7.1",
-    "typescript": "^5.3.3"
-  },
-  "dependencies": {
-    "esbuild": "^0.19.12",
-    "get-tsconfig": "^4.7.2",
-    "resolve-pkg-maps": "^1.0.0"
-  }
+    "scripts": {
+        "watch": "tsc -watch",
+        "build": "npm run reindex-project && npm run test && tsc",
+        "build-explain": "tsc --explainFiles",
+        "check-dependencies": "madge --circular ./src",
+        "create-link": "npm link",
+        "test": "node --import tsx --test src",
+        "npm-v-patch": "npm version patch",
+        "npm-v-major": "npm version major",
+        "npm-publish": "npm publish --access public",
+        "reset-repo": "git fetch origin && git reset --hard origin/main",
+        "reindex-project": "cti create ./src -i _dependencies -w -b -n -o exports-index.ts && node fix-folder-imports.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/KWizCom/common.git"
+    },
+    "keywords": [
+        "KWIZ",
+        "SharePoint",
+        "SPO",
+        "Teams",
+        "Utilities",
+        "Helpers"
+    ],
+    "author": "Shai Petel",
+    "contributors": [
+        "Shai Petel",
+        "Kevin Vieira"
+    ],
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/KWizCom/common/issues",
+        "email": "support@kwizcom.com"
+    },
+    "homepage": "https://github.com/KWizCom/common#readme",
+    "private": false,
+    "engines": {
+        "node": ">=16"
+    },
+    "packageManager": "npm@9.5.1",
+    "devDependencies": {
+        "create-ts-index": "^1.14.0",
+        "fs-extra": "^11.2.0",
+        "madge": "^6.1.0",
+        "tsx": "^4.7.1",
+        "typescript": "^5.3.3",
+        "xhr2": "^0.2.1"
+    },
+    "dependencies": {
+        "esbuild": "^0.19.12",
+        "get-tsconfig": "^4.7.2",
+        "resolve-pkg-maps": "^1.0.0"
+    }
 }

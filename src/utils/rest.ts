@@ -273,14 +273,21 @@ function _getRestErrorMessage(xhr: XMLHttpRequest) {
 }
 
 function _canSafelyStringify(result: any) {
-    //this would return false positives on some response strings
-    //return isObject(result) && !(result instanceof ArrayBuffer || result instanceof Blob || result instanceof Document);
-
-    if (isPrimitiveValue(result)) return true;
-    else if (isObject(result)) {
-        return !(result instanceof ArrayBuffer) && !(result instanceof Blob) && !(result instanceof Document);
+    //this would return false positives on some response strings    
+    if (isPrimitiveValue(result)) {
+        return true;
+    } else if (isObject(result)) {
+        if (
+            ("ArrayBuffer" in globalThis && (result instanceof ArrayBuffer))
+            || ("Blob" in globalThis && (result instanceof Blob))
+            || ("Document" in globalThis && (result instanceof Document))
+        ) {
+            return false;
+        }
+        return true;
+    } else {
+        return false;//shouldn't get here... since result should either be primitive value or an object
     }
-    else return false;//shouldn't get here... since result should either be primitive value or an object
 }
 
 export function GetJsonSync<T>(url: string, body?: IRequestBody, options?: IRestOptions): IJsonSyncResult<T> {
