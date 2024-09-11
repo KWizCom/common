@@ -289,6 +289,7 @@ export function replaceRegex(str: string, regex: RegExp, replacer: (match: strin
     if (!matches || matches.length < 1) return str;
     //replace each found token only once
     let unique = makeUniqueArray(matches);
+    //todo: this has a bug where tokens matched contain each other, example, match numbers and prefix with #: 10, 100 will match both and produce #10 ##100
     unique.forEach(m => {
         let replacement = replacer(m);
         if (!isNullOrUndefined(replacement))//ignore nulls
