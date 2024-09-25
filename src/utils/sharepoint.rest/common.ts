@@ -9,7 +9,7 @@ const logger = ConsoleLogger.get("sharepoint.rest/common");
 export const LIST_SELECT = `ListExperienceOptions,EffectiveBasePermissions,Description,Title,EnableAttachments,EnableModeration,BaseTemplate,BaseType,Id,Hidden,IsApplicationList,IsPrivate,IsCatalog,ImageUrl,ItemCount,ParentWebUrl,EntityTypeName,DefaultViewUrl,ParentWeb/Id,ParentWeb/Title`;
 export const LIST_EXPAND = `ParentWeb/Id,ParentWeb/Title`;
 export const WEB_SELECT = "Title,ServerRelativeUrl,Id,WebTemplate,Description,SiteLogoUrl";
-export const CONTENT_TYPES_SELECT = "Name,Description,StringId,Group,Hidden,ReadOnly,NewFormUrl,DisplayFormUrl,EditFormUrl";
+export const CONTENT_TYPES_SELECT = "Name,Description,StringId,Group,Hidden,ReadOnly,NewFormUrl,DisplayFormUrl,EditFormUrl,Sealed";
 export const CONTENT_TYPES_SELECT_WITH_FIELDS = `${CONTENT_TYPES_SELECT},Fields`;
 
 export function hasGlobalContext() {

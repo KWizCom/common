@@ -123,6 +123,7 @@ export interface iContentType {
     DisplayFormUrl: string;
     EditFormUrl: string;
     Fields?: IFieldInfoEX[];
+    Sealed?: boolean;
 }
 
 // eslint-disable-next-line no-shadow
