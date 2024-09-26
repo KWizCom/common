@@ -123,7 +123,13 @@ export interface iContentType {
     DisplayFormUrl: string;
     EditFormUrl: string;
     Fields?: IFieldInfoEX[];
-    Sealed?: boolean;
+    Sealed: boolean;
+    MobileNewFormUrl: string;
+    MobileDisplayFormUrl: string;
+    MobileEditFormUrl: string;
+    NewFormTemplateName: string;
+    DisplayFormTemplateName: string;
+    EditFormTemplateName: string;
 }
 
 // eslint-disable-next-line no-shadow
