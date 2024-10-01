@@ -1,4 +1,3 @@
-import { isBoolean, isString } from "./exports-index";
 
 export var BuildNumber = "unset";
 export var IsLocalDev = false;
@@ -8,7 +7,7 @@ export function SetDependencies(params: {
     IsLocalDev?: boolean;
     ReleaseStatus?: string;
 }) {
-    if (isString(params.BuildNumber)) BuildNumber = params.BuildNumber;
-    if (isBoolean(params.IsLocalDev)) IsLocalDev = params.IsLocalDev;
-    if (isString(params.ReleaseStatus)) ReleaseStatus = params.ReleaseStatus;
+    if (typeof params.BuildNumber === "string") BuildNumber = params.BuildNumber;
+    if (typeof params.IsLocalDev === "boolean") IsLocalDev = params.IsLocalDev;
+    if (typeof params.ReleaseStatus === "string") ReleaseStatus = params.ReleaseStatus;
 }
