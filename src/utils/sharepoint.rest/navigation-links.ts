@@ -1,4 +1,4 @@
-import { INavLinkInfo, isNullOrEmptyString, isNullOrUndefined, normalizeUrl } from "../_dependencies";
+import { INavLinkInfo, isNullOrEmptyString, isNullOrUndefined } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl } from "./common";
@@ -36,15 +36,15 @@ export async function GetNavigationLinks(siteUrl?: string): Promise<INavLinkInfo
  * @param location The location where the link will be added ('topnavigationbar' or 'quicklaunch'). Default is 'quicklaunch'.
  * @Logs If the location is invalid or if adding the link fails
  */
-export async function AddNavigationLink(location: string = 'quicklaunch'): Promise<INavLinkInfo> {
+export async function AddNavigationLink(title: string, url: string, location: 'topnavigationbar' | 'quicklaunch' = 'quicklaunch'): Promise<INavLinkInfo> {
     try {
         let siteUrl = GetSiteUrl();
         let navigationUrl = "";
         navigationUrl = `${GetRestBaseUrl(siteUrl)}/web/navigation/${location}`;
         const response = await GetJson<{ d: INavLinkInfo }>(navigationUrl, JSON.stringify({
             '__metadata': { 'type': 'SP.NavigationNode' },
-            'Title': "CMS365",
-            'Url': `${normalizeUrl(siteUrl, true)}SitePages/cms365.aspx`
+            'Title': title,
+            'Url': url
         }), {
             spWebUrl: siteUrl,
         });
