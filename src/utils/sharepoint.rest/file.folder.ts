@@ -486,6 +486,27 @@ export async function MoveFile(siteUrl: string, currentServerRelativeUrl: string
     /** set to true to automatically find the next available file name. uploading file.ext to a folder that has that file will upload a file named file.1.ext instead */
     autoRename?: boolean;
 }) {
+    return CopyOrMoveFile(siteUrl, currentServerRelativeUrl, targetServerRelativeUrl, "move", options);
+    //this does NOT allow to change the file extension. only file name.
+    // return UpdateItem(siteUrl, listIdOrTitle, itemId, {
+    //     FileLeafRef: newFileName "hello.txt" >> "hello.md" won't work.
+    // });
+}
+
+/** Copy a file to a new name/url, this API allows for changing file extension as well */
+export async function CopyFile(siteUrl: string, currentServerRelativeUrl: string, targetServerRelativeUrl: string, options?: {
+    overwrite?: boolean;
+    /** set to true to automatically find the next available file name. uploading file.ext to a folder that has that file will upload a file named file.1.ext instead */
+    autoRename?: boolean;
+}) {
+    return CopyOrMoveFile(siteUrl, currentServerRelativeUrl, targetServerRelativeUrl, "copy", options);
+}
+
+async function CopyOrMoveFile(siteUrl: string, currentServerRelativeUrl: string, targetServerRelativeUrl: string, action: "copy" | "move", options?: {
+    overwrite?: boolean;
+    /** set to true to automatically find the next available file name. uploading file.ext to a folder that has that file will upload a file named file.1.ext instead */
+    autoRename?: boolean;
+}) {
     try {
 
         if (options && options.autoRename) {
@@ -506,13 +527,21 @@ export async function MoveFile(siteUrl: string, currentServerRelativeUrl: string
             targetServerRelativeUrl = `${targetFolderUrl}/${fileName}`;
         }
 
+        let url = `${GetRestBaseUrl(siteUrl)}/web/getfilebyserverrelativeurl('${currentServerRelativeUrl}')/`
+        if (action === "copy") {
+            url += `copyto(strNewUrl='${targetServerRelativeUrl}',bOverwrite=${options && options.overwrite ? "true" : "false"})`;
+        } else {
+            url += `moveto(newurl='${targetServerRelativeUrl}',flags=${options && options.overwrite ? 1 : 0})`;
+        }
 
-        let url = `${GetRestBaseUrl(siteUrl)}/web/getfilebyserverrelativeurl('${currentServerRelativeUrl}')/moveto(newurl='${targetServerRelativeUrl}',flags=${options && options.overwrite ? 1 : 0})`;
-        let result = await GetJson(url, undefined, { method: "POST", jsonMetadata: jsonTypes.nometadata });
-        logger.json(result, "move file");
+        let result = await GetJson(url, undefined, {
+            method: "POST",
+            jsonMetadata: jsonTypes.nometadata
+        });
+        logger.json(result, "CopyOrMoveFile");
         return true;
     } catch (e) {
-        logger.json(e, "move file");
+        logger.json(e, "CopyOrMoveFile");
         return false;
     }
     //this does NOT allow to change the file extension. only file name.
