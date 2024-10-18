@@ -168,7 +168,7 @@ function _getStoredSize() {
     let useBlob = 'Blob' in $w;
 
     keys.forEach((key) => {
-        let v = _getItem(key);
+        let v = _getItem(`${keyPrefix}${key}`);
         if (!isNullOrEmptyString(v)) {
             if (useBlob) {
                 length = (new Blob([v + key])).size;
