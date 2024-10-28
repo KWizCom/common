@@ -162,7 +162,8 @@ export enum FieldTypes {
     WorkflowStatus = 28,
     AllDayEvent = 29,
     WorkflowEventType = 30,
-    Geolocation = 31
+    Geolocation = 31,
+    Location = 33
 }
 
 // eslint-disable-next-line no-shadow

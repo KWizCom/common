@@ -46,3 +46,10 @@ export type AuthContextType = {
     clientId: string,
     clientSecret: string
 };
+
+export enum SPFxAuthTokenType {
+    Outlook,
+    SharePoint,
+    Graph,
+    MySite
+}

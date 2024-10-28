@@ -4,6 +4,7 @@ export * from './date';
 export * from './file.folder';
 export * from './item';
 export * from './list';
+export * from './location';
 export * from './navigation-links';
 export * from './user-search';
 export * from './user';

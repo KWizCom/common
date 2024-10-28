@@ -7,6 +7,7 @@ export * from './globals.types';
 export * from './knownscript.types';
 export * from './locales';
 export * from './localstoragecache.types';
+export * from './location.types';
 export * from './moment';
 export * from './regex.types';
 export * from './rest.types';
