@@ -4,7 +4,7 @@ import { SPFxAuthTokenType } from "../../types/auth";
 import { IMeetingLocation, IMeetingLocationEntityType } from "../../types/location.types";
 import { jsonTypes } from "../_dependencies";
 import { GetSPFxClientAuthToken } from "../auth/common";
-import { GetJson, mediumLocalCache } from "../rest";
+import { GetJson, shortLocalCache } from "../rest";
 
 interface IMeetingLocationsQuery {
     QueryConstraint: {
@@ -66,7 +66,8 @@ async function _findMeetingLocations(options: { bingUri: string; query: string }
         url,
         JSON.stringify(queryData),
         {
-            ...mediumLocalCache,
+            ...shortLocalCache,
+            postCacheKey: `${queryData.BingMarket}|${queryData.LocationProvider}|${useBingUri ? queryData.QueryConstraint.Id : queryData.QueryConstraint.Query}`,
             includeDigestInPost: false,
             headers: {
                 "Accept": jsonTypes.verbose,

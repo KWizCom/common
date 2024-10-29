@@ -1018,7 +1018,10 @@ export type FieldTypeAsString = "Text" | "Note" | "Choice" | "MultiChoice" |
     /** OutcomeChoice from workflow task outcome modified PercentComplete and Stauts fields */
     "OutcomeChoice" |
     /** Thumbnail is an image field, see issue 7553 */
-    "Thumbnail";
+    "Thumbnail"
+    |
+    /** Location field */
+    "Location";
 export interface IFieldInfoEX extends IFieldInfo {
     TypeAsString: FieldTypeAsString;
     SchemaJson: IFieldJsonSchema;

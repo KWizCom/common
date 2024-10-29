@@ -1,6 +1,6 @@
 import { isNullOrEmptyString, isNullOrUndefined } from "../../helpers/typecheckers";
 import { SPFxAuthTokenType } from "../../types/auth";
-import { GetJson } from "../rest";
+import { GetJson, shortLocalCache } from "../rest";
 import { GetRestBaseUrl } from "../sharepoint.rest/common";
 
 export function GetTokenAudiencePrefix(appId: string) {
@@ -45,7 +45,7 @@ export async function GetSPFxClientAuthToken(siteUrl: string, spfxTokenType: SPF
         let data = {
             resource: resource,
             tokenType: isSPOToken ? "SPO" : undefined
-        };
+        };        
 
         let result = await GetJson<{
             access_token: string;
@@ -55,15 +55,17 @@ export async function GetSPFxClientAuthToken(siteUrl: string, spfxTokenType: SPF
             token_type: string;
         }>(
             acquireURL,
-            JSON.stringify(data), {
-            includeDigestInPost: true,
-            headers: {
-                "Accept": "application/json;odata.metadata=minimal",
-                "content-type": "application/json; charset=UTF-8",
-                "odata-version": "4.0",
-                "collectspperfmetrics": "SPSQLQueryCount"
-            }
-        });
+            JSON.stringify(data),
+            {
+                ...shortLocalCache,
+                postCacheKey: `${spfxTokenType}_${_spPageContextInfo.webId}`,
+                includeDigestInPost: true,
+                headers: {
+                    "Accept": "application/json;odata.metadata=minimal",
+                    "content-type": "application/json; charset=UTF-8",
+                    "odata-version": "4.0",
+                }
+            });
 
         return !isNullOrUndefined(result) && !isNullOrEmptyString(result.access_token) ? result.access_token : null;
     } catch {

@@ -1,4 +1,4 @@
-export type IMeetingLocationEntityType = "Default" | "ConferenceRoom" | "HomeAddress" | "BusinessAddress"
+export type IMeetingLocationEntityType = "Custom" | "Default" | "ConferenceRoom" | "HomeAddress" | "BusinessAddress"
     | "GeoCoordinates" | "StreetAddress" | "Hotel" | "Restaurant" | "LocalBusiness" | "PostalAddress";
 
 export interface IMeetingLocationAddress {
