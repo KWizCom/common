@@ -17,12 +17,12 @@ export interface IMeetingLocationCoordinates {
 /** Represents location information of an event. 
  * Similar to https://learn.microsoft.com/en-us/graph/api/resources/location?view=graph-rest-1.0/ */
 export interface IMeetingLocation {
-    Address: IMeetingLocationAddress,
-    Coordinates: IMeetingLocationCoordinates,
+    Address?: IMeetingLocationAddress,
+    Coordinates?: IMeetingLocationCoordinates,
     DisplayName: string;
     EntityType: IMeetingLocationEntityType;
-    IsPreviouslyUsed: boolean;
-    LocationSource: string;
-    LocationUri: string;
-    UniqueId: string;
+    IsPreviouslyUsed?: boolean;
+    LocationSource?: string;
+    LocationUri?: string;
+    UniqueId?: string;
 }
