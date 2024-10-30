@@ -20,7 +20,7 @@ export interface IMeetingLocation {
     Address?: IMeetingLocationAddress,
     Coordinates?: IMeetingLocationCoordinates,
     DisplayName: string;
-    EntityType: IMeetingLocationEntityType;
+    EntityType?: IMeetingLocationEntityType;
     IsPreviouslyUsed?: boolean;
     LocationSource?: string;
     LocationUri?: string;
