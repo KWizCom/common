@@ -45,7 +45,7 @@ export async function GetSPFxClientAuthToken(siteUrl: string, spfxTokenType: SPF
         let data = {
             resource: resource,
             tokenType: isSPOToken ? "SPO" : undefined
-        };        
+        };
 
         let result = await GetJson<{
             access_token: string;

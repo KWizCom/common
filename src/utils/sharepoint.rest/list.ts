@@ -660,6 +660,14 @@ export function GetListViewsSync(siteUrl: string, listIdOrTitle: string): iListV
 }
 
 export async function AddViewFieldToListView(siteUrl: string, listIdOrTitle: string, viewId: string, viewField: string) {
+    return _addOrRemoveViewField(siteUrl, listIdOrTitle, viewId, viewField, "addviewfield");
+}
+
+export async function RemoveViewFieldFromListView(siteUrl: string, listIdOrTitle: string, viewId: string, viewField: string) {
+    return _addOrRemoveViewField(siteUrl, listIdOrTitle, viewId, viewField, "removeviewfield");
+}
+
+async function _addOrRemoveViewField(siteUrl: string, listIdOrTitle: string, viewId: string, viewField: string, action: "addviewfield" | "removeviewfield") {
     siteUrl = GetSiteUrl(siteUrl);
 
     if (isNullOrEmptyString(viewField) || !isValidGuid(viewId)) {
@@ -682,22 +690,20 @@ export async function AddViewFieldToListView(siteUrl: string, listIdOrTitle: str
 
     let hasField = view.ViewFields.includes(viewField);
 
-    if (hasField === true) {
+    if (action === "addviewfield" && hasField === true) {
+        return true;
+    }
+
+    if (action === "removeviewfield" && hasField === false) {
         return true;
     }
 
     try {
-        let url = GetListRestUrl(siteUrl, listIdOrTitle) + `/views('${normalizeGuid(view.Id)}')/viewfields/addviewfield('${viewField}')`;
+        let url = GetListRestUrl(siteUrl, listIdOrTitle) + `/views('${normalizeGuid(view.Id)}')/viewfields/${action}('${viewField}')`;
 
-        let result = await GetJson<{
-            d: {
-                AddViewField: null
-            }
-        }>(url, null, { method: "POST" });
+        let result = await GetJson<{ "odata.null": boolean; }>(url, null, { method: "POST" });
 
-        console.log(result);
-
-        if (result && result.d.AddViewField === null) {
+        if (result && result["odata.null"] === true) {
             return true;
         }
     } catch { }
