@@ -1,6 +1,6 @@
 {
     "name": "@kwiz/common",
-    "version": "1.0.65",
+    "version": "1.0.66",
     "description": "KWIZ common utilities and helpers for M365 platform",
     "module": "dist/index.js",
     "types": "dist/index.d.ts",
