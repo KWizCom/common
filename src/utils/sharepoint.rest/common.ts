@@ -1,4 +1,10 @@
-import { FieldTypeAsString, IDictionary, IFieldInfoEX, IFieldTaxonomyInfo, IRestError, ISPRestError, isNullOrEmptyString, isNullOrUndefined, isString, isValidGuid, jsonParse, makeServerRelativeUrl, normalizeUrl } from "../_dependencies";
+import { jsonParse } from "../../helpers/json";
+import { isNullOrEmptyString, isNullOrUndefined, isString, isValidGuid } from "../../helpers/typecheckers";
+import { makeServerRelativeUrl, normalizeUrl } from "../../helpers/url";
+import { IDictionary } from "../../types/common.types";
+import { IRestError } from "../../types/rest.types";
+import { FieldTypeAsString, IFieldInfoEX, IFieldTaxonomyInfo } from "../../types/sharepoint.types";
+import { ISPRestError } from "../../types/sharepoint.utils.types";
 import { ConsoleLogger } from "../consolelogger";
 import { getCacheItem, setCacheItem } from "../localstoragecache";
 import { mediumLocalCache } from "../rest";

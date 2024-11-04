@@ -1,12 +1,13 @@
 import { FieldTypeAsString, FieldTypes, IDictionary, IFieldCalculatedInfo, IFieldInfo, IFieldInfoEX, IFieldJsonSchema, IFieldTaxonomyInfo, PrincipalType, RententionLabelFieldValueType, SPBasePermissionKind, ThumbnailValueType, UrlValueType, UserEntityValueType } from "./_dependencies";
-import { waitFor } from "./browser";
+import { waitFor, waitForWindowObject } from "./browser";
 import { firstOrNull, forEach } from "./collections.base";
 import { deleteCookie, getCookie, setCookie } from "./cookies";
 import { isValidEmail } from "./emails";
 import { jsonParse } from "./json";
 import { hasOwnProperty } from "./objects";
+import { promiseOnce } from "./promises";
 import { isValidDomainLogin, normalizeGuid } from "./strings";
-import { isNotEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, isNumeric, isString, isTypeofFullNameUndefined, isUndefined, isValidGuid } from "./typecheckers";
+import { isNotEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, isNumeric, isString, isTypeofFullNameNullOrUndefined, isTypeofFullNameUndefined, isUndefined, isValidGuid } from "./typecheckers";
 import { makeServerRelativeUrl, normalizeUrl } from "./url";
 
 export const KWIZ_CONTROLLER_FIELD_NAME = "kwizcomcontrollerfield";
@@ -493,7 +494,7 @@ export function EnsureViewFields(camlQuery: string, fields: string[], forceCreat
 /**If it is a thumbnail field - parse and return a typed value */
 export function ParseThumbnalFieldValue(value?: string, context?: {
     itemId: number;
-    rootFolder: string;    
+    rootFolder: string;
 }): ThumbnailValueType {
     if (!isNullOrEmptyString(value)) {
         try {
@@ -509,7 +510,7 @@ export function ParseThumbnalFieldValue(value?: string, context?: {
                 && !isNullOrUndefined(context)
                 && isNumber(context.itemId)
                 && !isNullOrEmptyString(context.rootFolder)) {
-                let { itemId, rootFolder } = context;                             
+                let { itemId, rootFolder } = context;
                 parsed.serverRelativeUrl = `${makeServerRelativeUrl(rootFolder)}/Attachments/${itemId}/${parsed.fileName}`
                 return parsed;
             }
@@ -735,10 +736,10 @@ export function isSharePointOnlineSync() {
         return true;
     }
 
-    if(!isTypeofFullNameUndefined("_spPageContextInfo")){
+    if (!isTypeofFullNameUndefined("_spPageContextInfo")) {
         return _spPageContextInfo.isSPO === true;
-    }   
-    
+    }
+
     return false;
 }
 
@@ -755,9 +756,20 @@ export async function isAppWeb() {
 }
 
 export function isAppWebSync() {
-    if(!isTypeofFullNameUndefined("_spPageContextInfo")){
+    if (!isTypeofFullNameUndefined("_spPageContextInfo")) {
         return _spPageContextInfo.isAppWeb === true;
-    }   
-    
+    }
+
     return false;
+}
+
+export async function isSPPageContextInfoReady() {
+    let key = `isSPPageContextInfoReady_${window.location.href.split("?")[0].split("#")[0]}`;
+    return await promiseOnce(key, async () => {
+        return await waitForWindowObject("_spPageContextInfo");
+    });
+}
+
+export function isSPPageContextInfoReadySync() {
+    return !isTypeofFullNameNullOrUndefined("_spPageContextInfo");
 }
