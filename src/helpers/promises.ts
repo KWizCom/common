@@ -1,16 +1,26 @@
 import { IDictionary } from "./_dependencies";
-import { hasOwnProperty } from "./objects";
-import { isFunction, isNullOrUndefined, isNumeric } from "./typecheckers";
+import { getGlobal, hasOwnProperty } from "./objects";
+import { isFunction, isNullOrUndefined } from "./typecheckers";
 
-var promises: IDictionary<Promise<any>> = {};
-/** key has to be unique for the promise name + its parameters
- * Usage: export var initTests = promiseOnce("initTests", async () => { ... });
- * Usage with variables:
- * function DiscoverTenantInfo(hostName: string) {
- *    return promiseOnce(`DiscoverTenantInfo|${hostName}`, async () => {...});
- * }
+let _global = getGlobal<{ promises: IDictionary<Promise<any>> }>("helpers_promises",
+    {
+        promises: {}
+    });
+
+/**
+ * Ensures that a promise runs only once
+ * @param {string} key - Unique key to identify the promise.
+ * @param {() => Promise<T>} promiseFunc - Function that will return the promise to be run only once.
+ * @param {(result: T) => Promise<boolean>} isValidResult - Optional function that returns boolean to indicate if the result returned
+ * by the promise is valid and should be kepy in memory. 
+ * @returns {Promise<T>} Returns the single promise that will be fullfilled for all promises with the same key.
+ * @example
+ * // returns Promise<string>
+ * export var initTests = promiseOnce<string>("initTests", async () => { ... }); 
  */
-export async function promiseOnce<T>(key: string, promise: () => Promise<T>, isValidResult?: (result: T) => Promise<boolean>): Promise<T> {
+export async function promiseOnce<T>(key: string, promiseFunc: () => Promise<T>, isValidResult?: (result: T) => Promise<boolean>): Promise<T> {
+    let promises = _global.promises;
+
     if (hasOwnProperty(promises, key) && isFunction(isValidResult)) {
         //we have en existing pending promise...
         let queuedResult: T = null;
@@ -19,13 +29,19 @@ export async function promiseOnce<T>(key: string, promise: () => Promise<T>, isV
             delete promises[key];
     }
 
-
     if (!hasOwnProperty(promises, key)) {
-        promises[key] = promise();
+        promises[key] = promiseFunc();
     }
+
     return promises[key];
 }
 
+/**
+ * Runs all promises in sequential order.
+ * @param {(() => Promise<T>)[]} asyncFuncs - Array of functions that return the promises to fullfill. 
+ * @returns {Promise<T[]>} Returns a single promise with a merged array of results that are in the same order as the 
+ * provided promise functions
+ */
 export function promiseAllSequential<T = any>(asyncFuncs: (() => Promise<T>)[]): Promise<T[]> {
     if (!Array.isArray(asyncFuncs) || !asyncFuncs.length) {
         return Promise.resolve([]);
@@ -41,16 +57,20 @@ export function promiseAllSequential<T = any>(asyncFuncs: (() => Promise<T>)[]):
     ), Promise.resolve([]));
 }
 
-export function promiseNParallel<T>(asyncFuncs: (() => Promise<T>)[], maxParallel?: number): Promise<T[]> {
+/**
+ * Runs N promises in parallel.
+ * @param {(() => Promise<T>)[]} asyncFuncs - Array of functions that return the promises to fullfill.
+ * @param {number} [maxParallel] - Max number of promises to run in parallel (default=8).
+ * @returns {Promise<T[]>} Returns a single promise with a merged array of results that are in the same order as the 
+ * provided promise functions
+ */
+export function promiseNParallel<T>(asyncFuncs: (() => Promise<T>)[], maxParallel: number = 8): Promise<T[]> {
     if (!Array.isArray(asyncFuncs) || !asyncFuncs.length) {
         return Promise.resolve([]);
     }
-    if (!isNumeric(maxParallel)) {
-        maxParallel = asyncFuncs.length;
-    }
 
-    var startChain = () => {
-        var chainData = [];
+    let startChain = () => {
+        let chainData = [];
 
         if (asyncFuncs.length) {
             let next = (data: T) => {
@@ -63,8 +83,8 @@ export function promiseNParallel<T>(asyncFuncs: (() => Promise<T>)[], maxParalle
         }
     };
 
-    var chains = [];
-    for (var k = 0; k < maxParallel; k += 1) {
+    let chains = [];
+    for (let k = 0; k < maxParallel; k += 1) {
         chains.push(startChain());
     }
 
@@ -74,14 +94,22 @@ export function promiseNParallel<T>(asyncFuncs: (() => Promise<T>)[], maxParalle
     });
 }
 
-/** provides an asnyc sleep function that allows you to delay async/wait calls  */
+/**
+ * Provides an asnyc sleep function that allows you to delay async/wait calls.
+ * @param {number} [seconds] - Time to sleep in seconds. 
+ */
 export function sleepAsync(seconds?: number): Promise<void> {
     return new Promise(resolve => {
         window.setTimeout(() => resolve(), seconds > 0 ? seconds * 1000 : 3000);
     });
 }
 
-/** provides the ability to retry an async function n times with a optional delay between calls */
+/**
+ * Provides the ability to retry an async function n times with a optional delay between calls
+ * @param {(...args) => Promise<T>} fn - Function to retry,
+ * @param {number} numberOfRetries - Number of times to retry.
+ * @param {number} [seconds] - Delay between retries in seconds (default=1).
+ */
 export async function retryAsync<T>(fn: (...args) => Promise<T>, numberOfRetries: number, seconds = 1) {
     let error: Error = null;
 
