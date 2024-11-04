@@ -1,12 +1,30 @@
 import { IDictionary } from "./_dependencies";
 import { getGlobal, hasOwnProperty } from "./objects";
-import { isFunction, isNullOrUndefined } from "./typecheckers";
+import { isFunction, isNullOrUndefined, isNumber } from "./typecheckers";
 
 let _global = getGlobal<{ promises: IDictionary<Promise<any>> }>("helpers_promises",
     {
         promises: {}
     });
 
+/**
+ * Lock all concurrent calls to a resource to one promise for a set duration of time.
+ * @param {string} key - Unique key to identify the promise.
+ * @param {() => Promise<T>} promiseFunc - Function that will return the promise to be run only once.
+ * @param {number} duration - Duration to hold on to the promise result. (default=1)
+ * @returns {Promise<T>} Returns the single promise that will be fullfilled for all promises with the same key.
+ * @example
+ * // returns Promise<string>
+ * var initTests = await promiseLock<string>("initTests", async () => { ... }, 2); 
+ */
+export async function promiseLock<T>(key: string, promiseFunc: () => Promise<T>, duration = 1): Promise<T> {
+    return promiseOnce(key, promiseFunc).then((result) => {
+        (globalThis || window).setTimeout(() => {
+            _deletePromiseByKey(key);
+        }, isNumber(duration) && duration >= 1 ? duration : 1);
+        return result;
+    });
+}
 /**
  * Ensures that a promise runs only once
  * @param {string} key - Unique key to identify the promise.
@@ -16,7 +34,7 @@ let _global = getGlobal<{ promises: IDictionary<Promise<any>> }>("helpers_promis
  * @returns {Promise<T>} Returns the single promise that will be fullfilled for all promises with the same key.
  * @example
  * // returns Promise<string>
- * export var initTests = promiseOnce<string>("initTests", async () => { ... }); 
+ * var initTests = await promiseOnce<string>("initTests", async () => { ... }); 
  */
 export async function promiseOnce<T>(key: string, promiseFunc: () => Promise<T>, isValidResult?: (result: T) => Promise<boolean>): Promise<T> {
     let promises = _global.promises;
@@ -25,8 +43,9 @@ export async function promiseOnce<T>(key: string, promiseFunc: () => Promise<T>,
         //we have en existing pending promise...
         let queuedResult: T = null;
         try { queuedResult = await promises[key]; } catch (e) { }
-        if ((await isValidResult(queuedResult)) !== true)
-            delete promises[key];
+        if ((await isValidResult(queuedResult)) !== true) {
+            _deletePromiseByKey(key);
+        }
     }
 
     if (!hasOwnProperty(promises, key)) {
@@ -100,7 +119,7 @@ export function promiseNParallel<T>(asyncFuncs: (() => Promise<T>)[], maxParalle
  */
 export function sleepAsync(seconds?: number): Promise<void> {
     return new Promise(resolve => {
-        window.setTimeout(() => resolve(), seconds > 0 ? seconds * 1000 : 3000);
+        (globalThis || window).setTimeout(() => resolve(), seconds > 0 ? seconds * 1000 : 3000);
     });
 }
 
@@ -127,4 +146,16 @@ export async function retryAsync<T>(fn: (...args) => Promise<T>, numberOfRetries
         throw error;
     }
     throw new Error(`Failed retrying ${numberOfRetries} times`);
+}
+
+function _deletePromiseByKey(key: string) {
+    let promises = _global.promises;
+    if (hasOwnProperty(promises, key)) {
+        try {
+            delete promises[key];
+            return true;
+        } catch {
+            return false;
+        }
+    }
 }
