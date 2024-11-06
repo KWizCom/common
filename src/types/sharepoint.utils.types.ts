@@ -251,3 +251,31 @@ export interface IWebRegionalSettings {
     WorkDays: number;
     WorkDayStartHour: number;
 }
+
+/** 
+ * Specifies the moderation status for a file/item (https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-wssfo3/4342322d-6fab-4dc5-8ccd-b808a5e25acf)
+*/
+export enum ModerationStatus {
+    /** The list item is approved. */
+    Approved,
+    /** The list item has been denied approval. */
+    Rejected,
+    /** The list item is pending approval. */
+    Pending,
+    /** The list item is in the draft or checked out state. */
+    Draft,
+    /** The list item is scheduled for automatic approval at a future date. */
+    Scheduled
+}
+
+/** 
+ * Specifies the publishing level for a file (https://learn.microsoft.com/en-us/previous-versions/office/sharepoint-visio/jj246272(v=office.15))
+*/
+export enum FileLevel {
+    /** Enumeration whose values specify whether the file is a published version.  */
+    Published = 1,
+    /** Enumeration whose values specify whether the file is a draft..  */
+    Draft = 2,
+    /** Enumeration whose values specify whether the file is checked out to the current user.  */
+    Checkout = 255
+}

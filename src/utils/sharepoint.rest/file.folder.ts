@@ -1,4 +1,4 @@
-import { IDictionary, IFileInfo, IFolderBasicInfo, IFolderInfo, IRequestBody, IRestOptions, IRestResponseType, encodeURIComponentEX, isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, jsonStringify, jsonTypes, makeServerRelativeUrl, newGuid, normalizeUrl } from "../_dependencies";
+import { FileLevel, IDictionary, IFileInfo, IFolderBasicInfo, IFolderInfo, IRequestBody, IRestOptions, IRestResponseType, ModerationStatus, encodeURIComponentEX, isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, jsonStringify, jsonTypes, makeServerRelativeUrl, newGuid, normalizeUrl } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, noLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl } from "./common";
@@ -145,11 +145,32 @@ export async function UploadFile(siteUrl: string, folderServerRelativeUrl: strin
         }>(() => { return { Exists: false }; });
 }
 
-export async function PulishFile(siteUrl: string, folderUrl: string, comment: string = "") {
+export async function PublishFile(siteUrl: string, fileUrl: string, comment: string = "") {
+    let result = await _moderateFile(siteUrl, fileUrl, "publish");
+    return result;
+}
+
+export async function UnpublishFile(siteUrl: string, fileUrl: string, comment: string = "") {
+    let result = await _moderateFile(siteUrl, fileUrl, "unpublish");
+    return result;
+}
+
+export async function ApproveFile(siteUrl: string, fileUrl: string, comment: string = "") {
     siteUrl = GetSiteUrl(siteUrl);
-    let folderServerRelativeUrl = makeServerRelativeUrl(folderUrl, siteUrl);
+    let result = await _moderateFile(siteUrl, fileUrl, "approve");
+    return result;
+}
+
+export async function RejectFile(siteUrl: string, fileUrl: string, comment: string = "") {
+    let result = await _moderateFile(siteUrl, fileUrl, "deny");
+    return result;
+}
+
+async function _moderateFile(siteUrl: string, fileUrl: string, action: "publish" | "unpublish" | "approve" | "deny", comment: string = "") {
+    siteUrl = GetSiteUrl(siteUrl);
+    let fileServerRelativeUrl = makeServerRelativeUrl(fileUrl, siteUrl);
     try {
-        let publishUrl = `${GetRestBaseUrl(siteUrl)}/Web/getFileByServerRelativeUrl('${folderServerRelativeUrl}')/publish('${comment}')`;
+        let publishUrl = `${GetRestBaseUrl(siteUrl)}/Web/getFileByServerRelativeUrl('${fileServerRelativeUrl}')/${action}('${comment}')`;
         let publishResult = await GetJson<{ "odata.null": boolean }>(publishUrl, null, {
             method: "POST",
             jsonMetadata: jsonTypes.nometadata,
@@ -229,6 +250,7 @@ export function GetFileSync<T>(siteUrl: string, fileServerRelativeUrl: string, r
             Exists: false
         };
 }
+
 export function GetFile<T>(siteUrl: string, fileServerRelativeUrl: string, allowCache?: boolean, responseType?: IRestResponseType): Promise<{ Exists: boolean; Content?: T; }> {
     siteUrl = GetSiteUrl(siteUrl);
 
@@ -375,6 +397,21 @@ export async function GetFileItemId(siteUrl: string, fileServerRelativeUrl: stri
     const result = await GetJson<{ value: number; }>(restUrl, null, { jsonMetadata: jsonTypes.nometadata });
     return result.value;
 }
+
+export async function GetFileModerationStatus(siteUrl: string, fileServerRelativeUrl: string) {
+    siteUrl = GetSiteUrl(siteUrl);
+    const restUrl = `${GetRestBaseUrl(siteUrl)}/web/getFileByServerRelativeUrl('${encodeURIComponentEX(fileServerRelativeUrl)}')/ListItemAllFields/OData__ModerationStatus`;
+    const result = await GetJson<{ value: ModerationStatus; }>(restUrl, null, { jsonMetadata: jsonTypes.nometadata });
+    return result.value;
+}
+
+export async function GetFilePublishingStatus(siteUrl: string, fileServerRelativeUrl: string) {
+    siteUrl = GetSiteUrl(siteUrl);
+    const restUrl = `${GetRestBaseUrl(siteUrl)}/web/getFileByServerRelativeUrl('${encodeURIComponentEX(fileServerRelativeUrl)}')/level`;
+    const result = await GetJson<{ value: FileLevel; }>(restUrl, null, { jsonMetadata: jsonTypes.nometadata });
+    return result.value;
+}
+
 export async function GetFileItemInfo(siteUrl: string, fileServerRelativeUrl: string): Promise<{ listId: string; itemId: number; }> {
     try {
         siteUrl = GetSiteUrl(siteUrl);
@@ -387,15 +424,20 @@ export async function GetFileItemInfo(siteUrl: string, fileServerRelativeUrl: st
                 },
                 Id: number;
             }
-        }>(restUrl, null, { jsonMetadata: jsonTypes.verbose });
+        }>(restUrl, null, {
+            jsonMetadata: jsonTypes.verbose
+        });
 
         const itemId = result.d.Id;
         const listId = result.d.__metadata.uri.split("'")[1];
 
         return { listId, itemId };
     }
-    catch (e) { return null; }
+    catch (e) {
+        return null;
+    }
 }
+
 export async function GetFolderItemInfo(siteUrl: string, folderServerRelativeUrl: string): Promise<{ listId: string; itemId: number; }> {
     try {
         siteUrl = GetSiteUrl(siteUrl);
