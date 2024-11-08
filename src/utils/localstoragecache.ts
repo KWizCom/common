@@ -1,4 +1,4 @@
-import { $w, BuildNumber, ILocalStorageCacheLifetime, flatted, getGlobal, isDate, isDebug, isNullOrEmptyString, isNullOrUndefined, isNumber, jsonParse, sizeOf } from "./_dependencies";
+import { $w, ILocalStorageCacheLifetime, flatted, getGlobal, isDate, isDebug, isNullOrEmptyString, isNullOrUndefined, isNumber, jsonParse, sizeOf } from "./_dependencies";
 import { ConsoleLogger } from "./consolelogger";
 
 /**key with prefix, value is a date string */
@@ -13,6 +13,9 @@ export const keyPrefix = "kw$_";
 export const LOCAL_STORAGE_PREFIX = "kwizcom-localstorage-cache";
 export const LOCAL_STORGAGE_EXPIRATIONS_KEY = LOCAL_STORAGE_PREFIX + "-expirations";
 export const DEFAULT_EXPIRATION = 20 * 60 * 1000; // 20 minutes;
+/** When caching logic changes (serialization methods, format, schema), the MODULE_REVISION should be incremented
+ * and all client side apps will need to be rebuilt */
+export const MODULE_REVISION = "1";
 /** key (no prefix) is kept in lower case. not case sensitive */
 var _cache = getGlobal<{
     purgeCalled: boolean;
@@ -81,7 +84,7 @@ function _getCacheExpirations(): IExpirationsDictionary {
 
         //ISSUE: 1525 - expire the cache if it was built with a different version number so that the cache 
         //is compatible with the current build
-        if (!isNullOrUndefined(_cache.expirations) && _cache.expirations.build !== BuildNumber.toString()) {
+        if (!isNullOrUndefined(_cache.expirations) && _cache.expirations.build !== MODULE_REVISION) {
             logger.log(`Purging cache because of build number change`)
             purgeCache(true);
             _cache.expirations = null;
@@ -89,7 +92,7 @@ function _getCacheExpirations(): IExpirationsDictionary {
 
         if (isNullOrUndefined(_cache.expirations)) {
             _cache.expirations = {
-                build: BuildNumber.toString()
+                build: MODULE_REVISION
             };
         }
     }
