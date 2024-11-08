@@ -108,9 +108,10 @@ function _saveCacheExpirations() {
         _removeItem(LOCAL_STORGAGE_EXPIRATIONS_KEY);
     }
 }
+
 function _setCacheExpiration(keyWithPrefix: string, expireDate: Date) {
     var expirations = _getCacheExpirations();
-    expirations[keyWithPrefix] = expireDate.toString();
+    expirations[keyWithPrefix] = expireDate.toISOString();
     _saveCacheExpirations();
 }
 

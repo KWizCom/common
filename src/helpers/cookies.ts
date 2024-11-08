@@ -53,3 +53,8 @@ export function setCookie(name: string, value: string, expireDays?: number, path
 
     document.cookie = cookie.join(";");
 }
+
+export function cookieEnabled() {
+    let enabled = "navigator" in globalThis && navigator.cookieEnabled === true;
+    return enabled;
+}
