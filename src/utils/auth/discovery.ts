@@ -1,4 +1,6 @@
-import { AzureEnvironment, ITenantInfo, isNullOrEmptyString, isValidGuid, promiseOnce } from "../_dependencies";
+import { promiseOnce } from "../../helpers/promises";
+import { isNullOrEmptyString, isValidGuid } from "../../helpers/typecheckers";
+import { AzureEnvironment, ITenantInfo } from "../../types/auth";
 import { GetJson, GetJsonSync } from "../rest";
 
 interface IOpenidConfiguration {

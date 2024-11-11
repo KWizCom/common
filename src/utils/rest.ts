@@ -1,4 +1,8 @@
-import { AllRestCacheOptionsKeys, IDictionary, IJsonSyncResult, IRequestBody, IRequestObjects, IRestCacheOptions, IRestError, IRestOptions, IRestRequestOptions, assign, getGlobal, hasOwnProperty, isNullOrEmptyString, isNullOrUndefined, isNumber, isObject, isPrimitiveValue, isString, jsonClone, jsonParse, jsonTypes } from "./_dependencies";
+import { jsonParse } from "../helpers/json";
+import { assign, getGlobal, hasOwnProperty, jsonClone } from "../helpers/objects";
+import { isNullOrEmptyString, isNullOrUndefined, isNumber, isObject, isPrimitiveValue, isString } from "../helpers/typecheckers";
+import { IDictionary } from "../types/common.types";
+import { AllRestCacheOptionsKeys, IJsonSyncResult, IRequestBody, IRequestObjects, IRestCacheOptions, IRestError, IRestOptions, IRestRequestOptions, jsonTypes } from "../types/rest.types";
 import { ConsoleLogger } from "./consolelogger";
 import { getCacheItem, setCacheItem } from "./localstoragecache";
 import { getFormDigest } from "./sharepoint.rest/web";
@@ -36,9 +40,17 @@ interface IPendingRequest<T> {
 }
 
 //if allowCache is true, results will be stored/returned from here
-var _cachedResults = getGlobal<{ [key: string]: IJsonSyncResult<any>; }>("utils_restmodule_cachedResults");
+function _getCachedResults() {
+    var _cachedResults = getGlobal<{ [key: string]: IJsonSyncResult<any>; }>("utils_restmodule_cachedResults");
+    return _cachedResults;
+}
+
 //cannot use from top window, example: DVP, if you open view item popup and close it too fast, there might be a pending request that never resolves since the handler code was unloaded from the window.
-var _pendingRequests = getGlobal<IDictionary<IPendingRequest<any>>>("utils_restmodule_pendingRequests", undefined, true);
+function _getPendingRequests() {
+    var _pendingRequests = getGlobal<IDictionary<IPendingRequest<any>>>("utils_restmodule_pendingRequests", undefined, true);
+    return _pendingRequests;
+}
+
 
 function getDefaultOptions(): IRestOptions {
     return {
@@ -142,6 +154,7 @@ function getCachedResult<T>(objects: IRequestObjects): IJsonSyncResult<T> {
             return null;
         }
 
+        let _cachedResults = _getCachedResults();
         if (isNullOrUndefined(_cachedResults[cacheKey])) {
             //try to load from local storage
             let result = getCacheItem<IJsonSyncResult<T>>('jsr_' + cacheKey);
@@ -191,6 +204,7 @@ function setCachedResult<T>(cacheOptions: IRestCacheOptions & { cacheKey?: strin
     response.cachedTime = new Date().getTime();
     let isResultSerializable = _canSafelyStringify(response.result);
 
+    let _cachedResults = _getCachedResults();
     _cachedResults[cacheOptions.cacheKey] = {
         ...response,
         result: isResultSerializable ? jsonClone(response.result) : response.result
@@ -209,7 +223,9 @@ function getPendingRequest<T = any>(objects: IRequestObjects): IPendingRequest<T
     var cacheKey = objects.cacheOptions.cacheKey;
     // if (isNullOrEmptyString(cacheKey)) {
     //     logger.warn('cache is not supported for this type of request.');
-    // } 
+    // }
+
+    let _pendingRequests = _getPendingRequests();
 
     if (!isNullOrEmptyString(cacheKey) && !isNullOrUndefined(_pendingRequests[cacheKey])) {
         //returned from cache
@@ -240,6 +256,7 @@ function setPendingRequest<T = any>(cacheKey: string, objects: IRequestObjects, 
         return null;
     }
 
+    let _pendingRequests = _getPendingRequests();
     _pendingRequests[cacheKey] = { objects: objects, promise: promise, listeners: [] };
     return _pendingRequests[cacheKey];
 }
@@ -250,6 +267,7 @@ function removePendingRequest(cacheKey: string) {
     }
 
     try {
+        let _pendingRequests = _getPendingRequests();
         _pendingRequests[cacheKey] = null;
         delete _pendingRequests[cacheKey];
     } catch (ex) {
@@ -477,6 +495,7 @@ export function GetJson<T>(url: string, body?: IRequestBody, options?: IRestOpti
 
 /** if you detected a change that invalidates all requests stored in memory - this will clear all in-memory cached results */
 export function GetJsonClearCache() {
+    let _cachedResults = _getCachedResults();
     Object.keys(_cachedResults).forEach(key => {
         delete _cachedResults[key];
     });

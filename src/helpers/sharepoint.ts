@@ -1,4 +1,6 @@
-import { FieldTypeAsString, FieldTypes, IDictionary, IFieldCalculatedInfo, IFieldInfo, IFieldInfoEX, IFieldJsonSchema, IFieldTaxonomyInfo, PrincipalType, RententionLabelFieldValueType, SPBasePermissionKind, ThumbnailValueType, UrlValueType, UserEntityValueType } from "./_dependencies";
+import { IDictionary } from "../types/common.types";
+import { FieldTypeAsString, FieldTypes, IFieldCalculatedInfo, IFieldInfo, IFieldInfoEX, IFieldJsonSchema, IFieldTaxonomyInfo, PrincipalType, RententionLabelFieldValueType, SPBasePermissionKind, ThumbnailValueType, UrlValueType } from "../types/sharepoint.types";
+import { UserEntityValueType } from "../types/sharepoint.utils.types";
 import { waitFor, waitForWindowObject } from "./browser";
 import { firstOrNull, forEach } from "./collections.base";
 import { deleteCookie, getCookie, setCookie } from "./cookies";

@@ -1,17 +1,13 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
     "target": "ES2020",
-    "outDir": "dist",
     "rootDir": "./src",
     "sourceMap": true,
-    "declaration": true,
     "strict": false,
-    "typeRoots": [
-      "./src/@types"
-    ],
     "moduleResolution": "Node",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "declaration": false
   },
   "include": [
     "./src"

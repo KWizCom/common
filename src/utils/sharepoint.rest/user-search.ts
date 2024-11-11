@@ -1,4 +1,7 @@
-import { IUserInfo, PrincipalType, contentTypes, firstIndexOf, jsonTypes } from "../_dependencies";
+import { firstIndexOf } from "../../helpers/collections.base";
+import { contentTypes, jsonTypes } from "../../types/rest.types";
+import { PrincipalType } from "../../types/sharepoint.types";
+import { IUserInfo } from "../../types/sharepoint.utils.types";
 import { GetJson } from "../rest";
 import { EnsureUser } from "./user";
 

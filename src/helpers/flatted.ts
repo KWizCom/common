@@ -2,7 +2,7 @@
 
 /*! (c) 2020 Andrea Giammarchi */
 
-import { IFlatted } from "./_dependencies";
+import { IFlatted } from "../types/flatted.types";
 import { isNullOrEmptyArray } from "./typecheckers";
 
 /** Version 3.2.9 */

@@ -1,4 +1,5 @@
-import { INavLinkInfo, isNullOrEmptyString, isNullOrUndefined } from "../_dependencies";
+import { isNullOrEmptyString, isNullOrUndefined } from "../../helpers/typecheckers";
+import { INavLinkInfo } from "../../types/sharepoint.types";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl } from "./common";

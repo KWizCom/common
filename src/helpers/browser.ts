@@ -1,4 +1,4 @@
-import { IDictionary } from "./_dependencies";
+import { IDictionary } from "../types/common.types";
 import { firstIndexOf } from "./collections.base";
 import { LOGO_ANIM } from "./images";
 import { getUniqueId } from "./random";

@@ -1,4 +1,10 @@
-import { IGroupInfo, ISPPeoplePickerControlFormEntity, ISiteGroupInfo, IUserInfo, IsSPPeoplePickerControlFormEntity, PrincipalType, contentTypes, encodeURIComponentEX, getPrincipalTypeFromPickerEntity, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, jsonStringify, jsonTypes } from "../_dependencies";
+import { jsonStringify } from "../../helpers/json";
+import { ISPPeoplePickerControlFormEntity, IsSPPeoplePickerControlFormEntity, getPrincipalTypeFromPickerEntity } from "../../helpers/sharepoint";
+import { isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber } from "../../helpers/typecheckers";
+import { encodeURIComponentEX } from "../../helpers/url";
+import { contentTypes, jsonTypes } from "../../types/rest.types";
+import { ISiteGroupInfo, PrincipalType } from "../../types/sharepoint.types";
+import { IGroupInfo, IUserInfo } from "../../types/sharepoint.utils.types";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl } from "./common";

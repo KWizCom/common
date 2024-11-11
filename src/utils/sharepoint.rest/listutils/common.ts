@@ -1,4 +1,9 @@
-import { FileSystemObjectTypes, GeListItemsFoldersBehaviour, IDictionary, IFieldInfoEX, IFieldLookupInfo, IRestItem, isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, jsonTypes, lastIndexOf, toHash } from "../../_dependencies";
+import { lastIndexOf, toHash } from "../../../helpers/collections.base";
+import { isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber } from "../../../helpers/typecheckers";
+import { IDictionary } from "../../../types/common.types";
+import { jsonTypes } from "../../../types/rest.types";
+import { FileSystemObjectTypes, IFieldInfoEX, IFieldLookupInfo } from "../../../types/sharepoint.types";
+import { GeListItemsFoldersBehaviour, IRestItem } from "../../../types/sharepoint.utils.types";
 import { ConsoleLogger } from "../../consolelogger";
 import { DecodeFieldValuesAsTextKey, GetFieldNameFromRawValues } from "../common";
 import { GetItemsByIdSync } from "./GetListItemsById";

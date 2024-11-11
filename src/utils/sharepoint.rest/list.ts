@@ -1,4 +1,13 @@
-import { BaseTypes, FieldTypeAsString, FieldTypes, GeListItemsFoldersBehaviour, IDictionary, IFieldInfo, IFieldInfoEX, IFieldInfoExHash, IFieldJsonSchema, IFieldLookupInfo, IListWorkflowAssociation, IRestItem, IRestOptions, ISPEventReceiver, ListExperienceOptions, ListTemplateTypes, NormalizeListName, PageType, PushNoDuplicate, SPBasePermissionKind, SPBasePermissions, SafeIfElse, SchemaXmlToJson, contentTypes, extendFieldInfo, firstOrNull, iContentType, iList, iListView, isBoolean, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isPromise, isString, isValidGuid, jsonStringify, jsonTypes, makeServerRelativeUrl, makeUniqueArray, normalizeGuid, normalizeUrl, toHash } from "../_dependencies";
+import { PushNoDuplicate, firstOrNull, makeUniqueArray, toHash } from "../../helpers/collections.base";
+import { jsonStringify } from "../../helpers/json";
+import { NormalizeListName, SPBasePermissions, SchemaXmlToJson, extendFieldInfo } from "../../helpers/sharepoint";
+import { normalizeGuid } from "../../helpers/strings";
+import { SafeIfElse, isBoolean, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isPromise, isString, isValidGuid } from "../../helpers/typecheckers";
+import { makeServerRelativeUrl, normalizeUrl } from "../../helpers/url";
+import { IDictionary } from "../../types/common.types";
+import { IRestOptions, contentTypes, jsonTypes } from "../../types/rest.types";
+import { BaseTypes, FieldTypeAsString, FieldTypes, IFieldInfo, IFieldInfoEX, IFieldInfoExHash, IFieldJsonSchema, IFieldLookupInfo, ISPEventReceiver, ListTemplateTypes, PageType, SPBasePermissionKind } from "../../types/sharepoint.types";
+import { GeListItemsFoldersBehaviour, IListWorkflowAssociation, IRestItem, ListExperienceOptions, iContentType, iList, iListView } from "../../types/sharepoint.utils.types";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl, LIST_EXPAND, LIST_SELECT } from "./common";

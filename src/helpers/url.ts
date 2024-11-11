@@ -1,4 +1,4 @@
-import { IDictionary } from "./_dependencies";
+import { IDictionary } from "../types/common.types";
 import { ArrayFill, lastOrNull } from "./collections.base";
 import { isNullOrEmptyString, isString } from "./typecheckers";
 import { URLHelper } from "./urlhelper";

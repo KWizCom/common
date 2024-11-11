@@ -1,4 +1,6 @@
-import { DateOrNull, isDate, isISODate, isISODateUTC, isNullOrEmptyString, isNullOrUndefined } from "../_dependencies";
+import { isISODate, isISODateUTC } from "../../helpers/date";
+import { isDate, isNullOrEmptyString, isNullOrUndefined } from "../../helpers/typecheckers";
+import { DateOrNull } from "../../types/common.types";
 import { toIsoDateFormat } from "../date";
 import { LocaleKnownScript } from "../knownscript";
 import { SPServerLocalTimeToUTCSync } from "./web";

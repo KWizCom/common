@@ -1,4 +1,4 @@
-import { IDictionary } from "./_dependencies";
+import { IDictionary } from "../types/common.types";
 import { IMultiLevelGroup, IMultiLevelGroupItem } from "./collections.base";
 import { hasOwnProperty, objectsEqual } from "./objects";
 import { isFunction, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isString } from "./typecheckers";

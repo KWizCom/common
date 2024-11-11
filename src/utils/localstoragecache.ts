@@ -1,4 +1,10 @@
-import { $w, ILocalStorageCacheLifetime, flatted, getGlobal, isDate, isDebug, isNullOrEmptyString, isNullOrUndefined, isNumber, jsonParse, sizeOf } from "./_dependencies";
+import { sizeOf } from "../helpers/collections.base";
+import { isDebug } from "../helpers/debug";
+import { flatted } from "../helpers/flatted";
+import { jsonParse } from "../helpers/json";
+import { getGlobal } from "../helpers/objects";
+import { isDate, isNullOrEmptyString, isNullOrUndefined, isNumber } from "../helpers/typecheckers";
+import { ILocalStorageCacheLifetime } from "../types/localstoragecache.types";
 import { ConsoleLogger } from "./consolelogger";
 
 /**key with prefix, value is a date string */
@@ -17,11 +23,30 @@ export const DEFAULT_EXPIRATION = 20 * 60 * 1000; // 20 minutes;
  * and all client side apps will need to be rebuilt */
 export const MODULE_REVISION = "1";
 /** key (no prefix) is kept in lower case. not case sensitive */
-var _cache = getGlobal<{
-    purgeCalled: boolean;
-    expirations: IExpirationsDictionary;
-    [keyNoPrefixToLower: string]: any;
-}>("common_utils_localstoragecache_module_cache");
+
+function _getCache() {
+    let _cache = getGlobal<{
+        purgeCalled: boolean;
+        expirations: IExpirationsDictionary;
+        [keyNoPrefixToLower: string]: any;
+    }>("common_utils_localstoragecache_module_cache");
+
+    if (!_cache.purgeCalled) {
+        //issue 7081 - purge all orphans/expired items
+        _cache.purgeCalled = true;
+        //clear expired cache items.
+        (globalThis || window).setTimeout(() => {
+            purgeCache();
+            if (isDebug()) {
+                let size = _getStoredSize();
+                logger.debug(`Size of items in local storage: ${size}KB`);
+            }
+        }, 5000);
+    }
+
+    return _cache;
+}
+
 var _supportsLocalStorage: boolean = null;
 
 function _parseExpiration(exp: number | ILocalStorageCacheLifetime | Date): Date {
@@ -79,6 +104,7 @@ function _parseExpiration(exp: number | ILocalStorageCacheLifetime | Date): Date
 }
 
 function _getCacheExpirations(): IExpirationsDictionary {
+    let _cache = _getCache();
     if (isNullOrUndefined(_cache.expirations)) {
         _cache.expirations = jsonParse<IExpirationsDictionary>(_getItem(LOCAL_STORGAGE_EXPIRATIONS_KEY));
 
@@ -101,6 +127,7 @@ function _getCacheExpirations(): IExpirationsDictionary {
 }
 
 function _saveCacheExpirations() {
+    let _cache = _getCache();
     if (!isNullOrUndefined(_cache.expirations) && sizeOf(_cache.expirations) > 0) {
         _setItem(LOCAL_STORGAGE_EXPIRATIONS_KEY, JSON.stringify(_cache.expirations));
     }
@@ -169,7 +196,7 @@ function _getStoredSize() {
     let keys = getCacheKeys();
     let total = 0;
     let length = 0;
-    let useBlob = 'Blob' in $w;
+    let useBlob = 'Blob' in (globalThis || window);
 
     keys.forEach((key) => {
         let v = _getItem(`${keyPrefix}${key}`);
@@ -211,6 +238,8 @@ export function getCacheItem<T>(key: string, options?: {
 }): T {
     key = key.toLowerCase();
     let keyWithPrefix = keyPrefix + key;
+
+    let _cache = _getCache();
 
     if (typeof (_cache[key]) !== "undefined"
         && _cache[key] !== null) {
@@ -270,12 +299,15 @@ export function setCacheItem(key: string, value: any, expiration: number | ILoca
             _setCacheExpiration(keyWithPrefix, expireDate);
         }
 
+        let _cache = _getCache();
+
         _cache[key] = value;
     }
 }
 
 export function removeCacheItem(key: string) {
     key = key.toLowerCase();
+    let _cache = _getCache();
     delete _cache[key];
     let keyWithPrefix = keyPrefix + key;
 
@@ -406,18 +438,5 @@ function purgeCache(removeAll?: boolean) {
 /** cleanup - remove all local storage keys created by this utility */
 export function clearCache(): void {
     return purgeCache(true);
-}
-
-if (!_cache.purgeCalled) {
-    //issue 7081 - purge all orphans/expired items
-    _cache.purgeCalled = true;
-    //clear expired cache items.
-    $w.setTimeout(() => {
-        purgeCache();
-        if (isDebug()) {
-            let size = _getStoredSize();
-            logger.debug(`Size of items in local storage: ${size}KB`);
-        }
-    }, 3000);
 }
 //#endregion

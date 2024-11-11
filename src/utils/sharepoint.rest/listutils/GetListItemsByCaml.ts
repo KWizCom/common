@@ -1,4 +1,12 @@
-import { EnsureViewFields, GeListItemsFoldersBehaviour, GetOrderByFromCaml, IDictionary, IFieldInfoEX, IRestItem, IsLocalDev, RemoveOrderByFromCaml, chunkArray, encodeURIComponentEX, firstIndexOf, firstOrNull, getFieldOutputType, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumeric, jsonTypes, makeUniqueArray, toHash } from "../../_dependencies";
+import { IsLocalDev } from "../../../_dependencies";
+import { chunkArray, firstIndexOf, firstOrNull, makeUniqueArray, toHash } from "../../../helpers/collections.base";
+import { EnsureViewFields, GetOrderByFromCaml, RemoveOrderByFromCaml, getFieldOutputType } from "../../../helpers/sharepoint";
+import { isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumeric } from "../../../helpers/typecheckers";
+import { encodeURIComponentEX } from "../../../helpers/url";
+import { IDictionary } from "../../../types/common.types";
+import { jsonTypes } from "../../../types/rest.types";
+import { IFieldInfoEX } from "../../../types/sharepoint.types";
+import { GeListItemsFoldersBehaviour, IRestItem } from "../../../types/sharepoint.utils.types";
 import { ConsoleLogger } from "../../consolelogger";
 import { GetJson } from "../../rest";
 import { GetSiteUrl, __getSPRestErrorData } from "../common";

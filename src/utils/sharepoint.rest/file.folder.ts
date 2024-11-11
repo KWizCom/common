@@ -1,4 +1,10 @@
-import { FileLevel, IDictionary, IFileInfo, IFolderBasicInfo, IFolderInfo, IRequestBody, IRestOptions, IRestResponseType, ModerationStatus, encodeURIComponentEX, isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, jsonStringify, jsonTypes, makeServerRelativeUrl, newGuid, normalizeUrl } from "../_dependencies";
+import { jsonStringify } from "../../helpers/json";
+import { isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, newGuid } from "../../helpers/typecheckers";
+import { encodeURIComponentEX, makeServerRelativeUrl, normalizeUrl } from "../../helpers/url";
+import { IDictionary } from "../../types/common.types";
+import { IRequestBody, IRestOptions, IRestResponseType, jsonTypes } from "../../types/rest.types";
+import { IFolderBasicInfo, IFolderInfo } from "../../types/sharepoint.types";
+import { FileLevel, IFileInfo, ModerationStatus } from "../../types/sharepoint.utils.types";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, noLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl } from "./common";

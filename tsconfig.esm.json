@@ -1,0 +1,10 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "module": "ESNext",
+        "outDir": "lib/esm",
+        /* Only need to create the declarations one time so do it in the ESM config */
+        "declaration": true,
+        "declarationDir": "lib/types"
+    }
+}

@@ -1,4 +1,4 @@
-import { isBoolean, isFunction } from "./_dependencies";
+import { isBoolean, isFunction } from "../helpers/typecheckers";
 import { LocaleKnownScript } from "./knownscript";
 
 /** return date format as yyyy-MM-ddTHH:mm:ssZ

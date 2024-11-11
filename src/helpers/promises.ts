@@ -1,11 +1,14 @@
-import { IDictionary } from "./_dependencies";
+import { IDictionary } from "../types/common.types";
 import { getGlobal, hasOwnProperty } from "./objects";
 import { isFunction, isNullOrUndefined, isNumber } from "./typecheckers";
 
-let _global = getGlobal<{ promises: IDictionary<Promise<any>> }>("helpers_promises",
-    {
-        promises: {}
-    });
+function _getGlobal() {
+    let _global = getGlobal<{ promises: IDictionary<Promise<any>> }>("helpers_promises",
+        {
+            promises: {}
+        });
+    return _global;
+}
 
 /**
  * Lock all concurrent calls to a resource to one promise for a set duration of time.
@@ -37,6 +40,7 @@ export async function promiseLock<T>(key: string, promiseFunc: () => Promise<T>,
  * var initTests = await promiseOnce<string>("initTests", async () => { ... }); 
  */
 export async function promiseOnce<T>(key: string, promiseFunc: () => Promise<T>, isValidResult?: (result: T) => Promise<boolean>): Promise<T> {
+    let _global = _getGlobal();
     let promises = _global.promises;
 
     if (hasOwnProperty(promises, key) && isFunction(isValidResult)) {
@@ -149,6 +153,7 @@ export async function retryAsync<T>(fn: (...args) => Promise<T>, numberOfRetries
 }
 
 function _deletePromiseByKey(key: string) {
+    let _global = _getGlobal();
     let promises = _global.promises;
     if (hasOwnProperty(promises, key)) {
         try {

@@ -2,8 +2,7 @@
 /** this file will only use basic type checker and types, do not add functions that require
  * a reference to tother helpers
  */
-
-import { IDictionary } from "./_dependencies";
+import { IDictionary } from "../types/common.types";
 import { getFromFullName, isBoolean, isDate, isFunction, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isString, isTypeofFullNameFunction } from "./typecheckers";
 
 /** this will support HtmlCollectionOf, Arrays, and any other types that have a length and indexer Issue 568 */

@@ -1,4 +1,10 @@
-import { BuildNumber, IDictionary, ReleaseStatus, consoleLoggerFilter, getGlobal, getSecondsElapsed, isDebug, isFunction, isNullOrEmptyString, isNumber, isNumeric, isString, padLeft, padRight } from "./_dependencies";
+import { BuildNumber, ReleaseStatus } from "../_dependencies";
+import { getSecondsElapsed } from "../helpers/date";
+import { consoleLoggerFilter, isDebug } from "../helpers/debug";
+import { getGlobal } from "../helpers/objects";
+import { padLeft, padRight } from "../helpers/strings";
+import { isFunction, isNullOrEmptyString, isNumber, isNumeric, isString } from "../helpers/typecheckers";
+import { IDictionary } from "../types/common.types";
 
 const DEFAULT_LOGGER_NAME = "DEFAULT";
 const LoggerPrefix = "[kw]";

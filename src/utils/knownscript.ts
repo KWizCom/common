@@ -1,5 +1,11 @@
+import { assign } from "../helpers/objects";
+import { isNullOrUndefined } from "../helpers/typecheckers";
+import { IKnownScript, ksGlobal } from "../types/knownscript.types";
+import { IDataJs } from "../types/libs/datajs.types";
+import { ICS } from "../types/libs/ics.types";
+import { IMSAL } from "../types/libs/msal.types";
+import { IKLocales } from "../types/locales";
 import { typeMomentJS, typeMonentJSTimeZone } from "../types/moment";
-import { ICS, IDataJs, IKLocales, IKnownScript, IMSAL, assign, isNullOrUndefined, ksGlobal } from "./_dependencies";
 import script from "./script";
 
 /** /products/common/scripts/ */

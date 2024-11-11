@@ -1,4 +1,4 @@
-import { IGraphEventAttendee, IGraphEventUser } from "../_dependencies";
+import { IGraphEventAttendee, IGraphEventUser } from "../../types/graph/calendar.types";
 import { isNullOrEmptyString } from "../typecheckers";
 
 export function IsGraphEventUser(obj: any): obj is IGraphEventUser {

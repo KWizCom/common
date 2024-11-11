@@ -1,4 +1,7 @@
-import { IKnownScript, isDebug, isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, ksGlobal, noop } from "./_dependencies";
+import { isDebug } from "../helpers/debug";
+import { noop } from "../helpers/objects";
+import { isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined } from "../helpers/typecheckers";
+import { IKnownScript, ksGlobal } from "../types/knownscript.types";
 import Sod from "./sod";
 
 export interface IScriptUtils {

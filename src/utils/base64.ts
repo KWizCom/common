@@ -1,4 +1,5 @@
-import { blobToBase64, isNullOrEmptyString } from "./_dependencies";
+import { blobToBase64 } from "../helpers/base64";
+import { isNullOrEmptyString } from "../helpers/typecheckers";
 import { GetJson } from "./rest";
 import { GetFile } from "./sharepoint.rest/file.folder";
 

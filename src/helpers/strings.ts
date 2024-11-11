@@ -1,4 +1,4 @@
-import { IDictionary } from "./_dependencies";
+import { IDictionary } from "../types/common.types";
 import { makeUniqueArray } from "./collections.base";
 import { isNullOrEmptyString, isNullOrUndefined, isNumber, isString } from "./typecheckers";
 

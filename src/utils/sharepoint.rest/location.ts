@@ -2,7 +2,7 @@ import { waitFor } from "../../helpers/browser";
 import { isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isTypeofFullNameUndefined } from "../../helpers/typecheckers";
 import { SPFxAuthTokenType } from "../../types/auth";
 import { IMeetingLocation, IMeetingLocationEntityType } from "../../types/location.types";
-import { jsonTypes } from "../_dependencies";
+import { jsonTypes } from "../../types/rest.types";
 import { GetSPFxClientAuthToken } from "../auth/common";
 import { GetJson, shortLocalCache } from "../rest";
 

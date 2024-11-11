@@ -1,4 +1,4 @@
-import { isValidEmail } from "./_dependencies";
+import { isValidEmail } from "../helpers/emails";
 import { GetJsonSync, longLocalCache } from "./rest";
 
 

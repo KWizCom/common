@@ -1,5 +1,13 @@
+import { chunkArray } from "../../helpers/collections.base";
+import { hasOwnProperty } from "../../helpers/objects";
+import { promiseNParallel } from "../../helpers/promises";
+import { isBoolean, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isObject, isString } from "../../helpers/typecheckers";
+import { encodeURIComponentEX } from "../../helpers/url";
+import { IDictionary } from "../../types/common.types";
+import { jsonTypes } from "../../types/rest.types";
+import { DateTimeFieldFormatType, IAttachmentInfo, IFieldCurrencyInfo, IFieldDateTimeInfo, IFieldInfoEX, IFieldNumberInfo, TaxonomyValueType } from "../../types/sharepoint.types";
+import { IRestItem } from "../../types/sharepoint.utils.types";
 import { LocaleKnownScript } from "../../utils/knownscript";
-import { DateTimeFieldFormatType, IAttachmentInfo, IDictionary, IFieldCurrencyInfo, IFieldDateTimeInfo, IFieldInfoEX, IFieldNumberInfo, IRestItem, TaxonomyValueType, chunkArray, encodeURIComponentEX, hasOwnProperty, isBoolean, isDate, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isObject, isString, jsonTypes, promiseNParallel } from "../_dependencies";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync } from "../rest";
 import { GetFieldNameFromRawValues, GetSiteUrl, __getSPRestErrorData, getFieldNameForUpdate } from "./common";

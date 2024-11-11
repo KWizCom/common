@@ -1,10 +1,17 @@
-import { IRestItem, chunkArray, getGlobal, isBoolean, isNotEmptyArray, isNullOrEmptyArray, isNullOrUndefined, isNumber, jsonClone, jsonTypes } from "../../_dependencies";
+import { chunkArray } from "../../../helpers/collections.base";
+import { getGlobal, jsonClone } from "../../../helpers/objects";
+import { isBoolean, isNotEmptyArray, isNullOrEmptyArray, isNullOrUndefined, isNumber } from "../../../helpers/typecheckers";
+import { jsonTypes } from "../../../types/rest.types";
+import { IRestItem } from "../../../types/sharepoint.utils.types";
 import { GetJson, GetJsonSync } from "../../rest";
 import { GetListRestUrl } from "../list";
 
-let g_cache = getGlobal<{ getItemsByIdCache: { [cachekey: string]: IRestItem[]; }; }>("SharePoint_Rest_List_Cache", {
-    getItemsByIdCache: {}
-});
+function _getGlobalCache() {
+    let _cache = getGlobal<{ getItemsByIdCache: { [cachekey: string]: IRestItem[]; }; }>("SharePoint_Rest_List_Cache", {
+        getItemsByIdCache: {}
+    });
+    return _cache;
+}
 
 /** return array will use the item ID as indexer, not a real array */
 export async function GetItemsById<T extends IRestItem>(siteUrl: string, listIdOrTitle: string, itemIds: number[], options?: {
@@ -129,6 +136,7 @@ export function GetItemsByIdSync<T extends IRestItem>(siteUrl: string, listIdOrT
 }
 
 function _addCacheItem<T extends IRestItem>(cacheKey: string, item: T) {
+    let g_cache = _getGlobalCache();
     if (isNullOrUndefined(g_cache.getItemsByIdCache[cacheKey])) {
         g_cache.getItemsByIdCache[cacheKey] = [];
     }
@@ -136,6 +144,7 @@ function _addCacheItem<T extends IRestItem>(cacheKey: string, item: T) {
 }
 
 function _getCacheItem<T extends IRestItem>(cacheKey: string, itemId: number) {
+    let g_cache = _getGlobalCache();
     if (isNullOrUndefined(g_cache.getItemsByIdCache[cacheKey])) {
         g_cache.getItemsByIdCache[cacheKey] = [];
     }
@@ -148,6 +157,7 @@ function _getCacheItem<T extends IRestItem>(cacheKey: string, itemId: number) {
 }
 
 function _refreshCache(cacheKey: string) {
+    let g_cache = _getGlobalCache();
     g_cache.getItemsByIdCache[cacheKey] = [];
 }
 

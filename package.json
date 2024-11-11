@@ -2,19 +2,27 @@
     "name": "@kwiz/common",
     "version": "1.0.73",
     "description": "KWIZ common utilities and helpers for M365 platform",
-    "module": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "lib/cjs/index.js",
+    "module": "lib/esm/index.js",
+    "types": "lib/types/index.d.ts",
+    "sideEffects": [
+        "*.scss*",
+        "lib/esm/helpers/debug.js",
+        "lib/esm/config.js"
+    ],
     "exports": {
         ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js",
-            "default": "./dist/index.js"
+            "types": "./lib/types/index.d.ts",
+            "import": "./lib/esm/index.js",
+            "require": "./lib/cjs/index.js"
         },
         "./package.json": "./package.json"
     },
     "scripts": {
         "watch": "tsc -watch",
-        "build": "npm run reindex-project && npm run test && tsc",
+        "build": "npm run reindex-project && npm run test && npm run build:esm && npm run build:cjs",
+        "build:esm": "tsc -p tsconfig.esm.json",
+        "build:cjs": "tsc -p tsconfig.cjs.json",
         "build-explain": "tsc --explainFiles",
         "check-dependencies": "madge --circular ./src",
         "create-link": "npm link",

@@ -1,4 +1,4 @@
-import { IsLocalDev } from "./_dependencies";
+import { IsLocalDev } from "../_dependencies";
 import { deleteCookie, getCookie, setCookie } from "./cookies";
 import { $w, getKWizComGlobal } from "./objects";
 import { sleepAsync } from "./promises";
