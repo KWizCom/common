@@ -172,6 +172,13 @@ export interface IFileInfo {
     TimeCreated: Date;
     TimeLastModified: Date;
     Title: string;
+    Level: FileLevel;
+}
+
+export interface IFileInfoWithModerationStatus extends IFileInfo {
+    ListItemAllFields?: {
+        OData__ModerationStatus?: ModerationStatus
+    }
 }
 
 export interface ITimeZone {

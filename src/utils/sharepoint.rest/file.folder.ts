@@ -4,7 +4,7 @@ import { encodeURIComponentEX, makeServerRelativeUrl, normalizeUrl } from "../..
 import { IDictionary } from "../../types/common.types";
 import { IRequestBody, IRestOptions, IRestResponseType, jsonTypes } from "../../types/rest.types";
 import { IFolderBasicInfo, IFolderInfo } from "../../types/sharepoint.types";
-import { FileLevel, IFileInfo, ModerationStatus } from "../../types/sharepoint.utils.types";
+import { FileLevel, IFileInfoWithModerationStatus, ModerationStatus } from "../../types/sharepoint.utils.types";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, mediumLocalCache, noLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl } from "./common";
@@ -72,15 +72,15 @@ export function DeleteFolder(siteUrl: string, folderUrl: string): Promise<boolea
         .catch<boolean>((e) => false);
 }
 
-export function GetFolderFiles(siteUrl: string, folderUrl: string): Promise<IFileInfo[]> {
+export function GetFolderFiles(siteUrl: string, folderUrl: string): Promise<IFileInfoWithModerationStatus[]> {
     siteUrl = GetSiteUrl(siteUrl);
     folderUrl = makeServerRelativeUrl(folderUrl, siteUrl);
     var requestUrl = `${GetRestBaseUrl(siteUrl)}/Web/getFolderByServerRelativeUrl(serverRelativeUrl='${folderUrl}')`
-        + `/files?$select=Exists,Name,ServerRelativeUrl,Title,TimeCreated,TimeLastModified`;
+        + `/files?$select=Level,Exists,Name,ServerRelativeUrl,Title,TimeCreated,TimeLastModified,ListItemAllFields/OData__ModerationStatus&$expand=ListItemAllFields`;
 
-    return GetJson<{ d: { results: IFileInfo[]; }; }>(requestUrl).then(r => {
+    return GetJson<{ d: { results: IFileInfoWithModerationStatus[]; }; }>(requestUrl).then(r => {
         return r.d && r.d.results || [];
-    }).catch<IFileInfo[]>(() => {
+    }).catch<IFileInfoWithModerationStatus[]>(() => {
         return [];
     });
 }
