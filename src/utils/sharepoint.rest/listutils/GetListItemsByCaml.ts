@@ -263,9 +263,9 @@ async function _processLookupThresholdCamlRequest(
 
     let otherFieldNames = options.columns.filter((columnName) => {
         let field = allListFieldsHash[columnName];
-        return !isNullOrUndefined(field) && !_isLookupOrUserField(field);       
+        return !isNullOrUndefined(field) && !_isLookupOrUserField(field);
     });
-    
+
     //The number of lookup columns in each request is based on the lookupOrUserFieldLimit.     
     //Lookup fields in the order by statement must be sent with each request.
     //For example, we have 20 lookup columns and 3 of them are in the order by statement.
@@ -569,28 +569,24 @@ function _processColumns(columns: string[], expandFields: string[], allListField
 
     //column parsing
     columns.forEach(viewField => {
-        if (viewField.toLowerCase() === 'contenttype' || viewField.toLowerCase() === 'contenttypeid') {
+        let viewFieldLower = viewField.toLowerCase();
+        if (viewFieldLower === 'contenttype' || viewFieldLower === 'contenttypeid') {
             needContentTypes = true;
-        }
-        else if (viewField.toLowerCase() === '_moderationstatus') {
+        } else if (viewFieldLower === '_moderationstatus') {
             selectFields.push(`FieldValuesAsText/${viewField}`);
             viewFields.push('_moderationstatus');
-        }
-        else if (viewField.toLowerCase() === '_moderationcomments') {
+        } else if (viewFieldLower === '_moderationcomments') {
             selectFields.push('OData_' + viewField);
             viewFields.push('_moderationcomments');
-        }
-        else if (viewField.toLowerCase() === "filesystemobjecttype") {
+        } else if (viewFieldLower === "filesystemobjecttype") {
             selectFields.push("FileSystemObjectType");
-        }
-        else if (viewField.toLowerCase() === "fileref" || viewField.toLowerCase() === "filedirref") {
+        } else if (viewFieldLower === "fileref" || viewFieldLower === "filedirref") {
             //treat them similar to lookup fields
             selectFields.push(viewField);
             selectFields.push(`FieldValuesAsText/${viewField}`);
             viewFields.push(`${viewField}`);
             viewFields.push(`${viewField}Id`);
-        }
-        else {
+        } else {
             //prefer to get columns not from FieldValuesAsText, unless special data type requires it (date, lookup, boolean, etc...)
             //make the select url shorter
             let foundField = allListFieldsHash[viewField];
@@ -598,36 +594,55 @@ function _processColumns(columns: string[], expandFields: string[], allListField
                 let foundFieldInternalName = foundField.InternalName;
                 viewFields.push(foundFieldInternalName);
 
-                //Issue 828, 336
-                if (foundFieldInternalName.startsWith("_")) {
-                    foundFieldInternalName = `OData_${foundFieldInternalName}`;
+                let urlField: IFieldInfoEX = null;
+
+                if (foundField.TypeAsString === "URL" && foundField.InternalName === "URL") {
+                    urlField = foundField;
+                } else if ((viewFieldLower === "urlnomenu"
+                    || viewFieldLower === "urlwmenu2"
+                    || viewFieldLower === "urlwmenu")
+                    && foundField.TypeAsString === "Computed"
+                    && !isNullOrUndefined(allListFieldsHash["URL"])
+                    && allListFieldsHash["URL"].TypeAsString === "URL") {
+                    urlField = allListFieldsHash["URL"];
                 }
 
-                let outputType = getFieldOutputType(foundField);
+                if (!isNullOrUndefined(urlField) && urlField.TypeAsString === "URL") {
+                    viewFields.push(urlField.InternalName);
+                    selectFields.push(urlField.InternalName);
+                    selectFields.push(`FieldValuesAsText/${urlField.InternalName}`);
+                } else {
+                    //Issue 828, 336
+                    if (foundFieldInternalName.startsWith("_")) {
+                        foundFieldInternalName = `OData_${foundFieldInternalName}`;
+                    }
 
-                switch (outputType) {
-                    case "Lookup":
-                    case "LookupMulti":
-                    case "User":
-                    case "UserMulti":
-                        thresholdLimitLookupCount += 1;
-                        if (thresholdLimitLookupCount >= lookupOrUserFieldLimit) {
-                            thresholdLimitLookupHit = true;
-                        }
-                        //lookup raw values comes with Id appended
-                        selectFields.push(`FieldValuesAsText/${foundFieldInternalName}`);
-                        selectFields.push(`${foundFieldInternalName}Id`);
-                        break;
-                    case "Boolean":
-                    case "Attachments":
-                    case "AllDayEvent":
-                    case "Recurrence":
-                        selectFields.push(`FieldValuesAsText/${foundFieldInternalName}`);
-                        selectFields.push(foundFieldInternalName);
-                        break;
-                    default:
-                        selectFields.push(foundFieldInternalName);
-                        break;
+                    let outputType = getFieldOutputType(foundField);
+
+                    switch (outputType) {
+                        case "Lookup":
+                        case "LookupMulti":
+                        case "User":
+                        case "UserMulti":
+                            thresholdLimitLookupCount += 1;
+                            if (thresholdLimitLookupCount >= lookupOrUserFieldLimit) {
+                                thresholdLimitLookupHit = true;
+                            }
+                            //lookup raw values comes with Id appended
+                            selectFields.push(`FieldValuesAsText/${foundFieldInternalName}`);
+                            selectFields.push(`${foundFieldInternalName}Id`);
+                            break;
+                        case "Boolean":
+                        case "Attachments":
+                        case "AllDayEvent":
+                        case "Recurrence":
+                            selectFields.push(`FieldValuesAsText/${foundFieldInternalName}`);
+                            selectFields.push(foundFieldInternalName);
+                            break;
+                        default:
+                            selectFields.push(foundFieldInternalName);
+                            break;
+                    }
                 }
             }
             else {
