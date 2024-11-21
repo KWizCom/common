@@ -7,7 +7,6 @@ import { deleteCookie, getCookie, setCookie } from "./cookies";
 import { isValidEmail } from "./emails";
 import { jsonParse } from "./json";
 import { hasOwnProperty } from "./objects";
-import { promiseOnce } from "./promises";
 import { isValidDomainLogin, normalizeGuid } from "./strings";
 import { isNotEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, isNumeric, isString, isTypeofFullNameNullOrUndefined, isTypeofFullNameUndefined, isUndefined, isValidGuid } from "./typecheckers";
 import { makeServerRelativeUrl, normalizeUrl } from "./url";
@@ -766,10 +765,7 @@ export function isAppWebSync() {
 }
 
 export async function isSPPageContextInfoReady() {
-    let key = `isSPPageContextInfoReady_${window.location.href.split("?")[0].split("#")[0]}`;
-    return await promiseOnce(key, async () => {
-        return await waitForWindowObject("_spPageContextInfo");
-    });
+    return await waitForWindowObject("_spPageContextInfo");
 }
 
 export function isSPPageContextInfoReadySync() {
