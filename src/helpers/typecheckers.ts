@@ -148,6 +148,10 @@ export function isString(obj: any): obj is string {
     return isType(obj, _objectTypes.String);
 }
 
+export function isNotEmptyString(obj: any): obj is string {
+    return isString(obj) && obj.length > 0;
+}
+
 /** true if object is a Date object */
 export function isDate(obj: any): obj is Date {
     return !isNullOrUndefined(obj) && isFunction(obj.getTime) && !isNullOrNaN((obj as Date).getTime());
