@@ -1,6 +1,6 @@
 import { PushNoDuplicate, firstOrNull, makeUniqueArray, toHash } from "../../helpers/collections.base";
 import { jsonStringify } from "../../helpers/json";
-import { NormalizeListName, SPBasePermissions, SchemaXmlToJson, extendFieldInfo } from "../../helpers/sharepoint";
+import { NormalizeListName, SPBasePermissions, SchemaXmlToJson, extendFieldInfos } from "../../helpers/sharepoint";
 import { normalizeGuid } from "../../helpers/strings";
 import { SafeIfElse, isBoolean, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isPromise, isString, isValidGuid } from "../../helpers/typecheckers";
 import { makeServerRelativeUrl, normalizeUrl } from "../../helpers/url";
@@ -287,7 +287,7 @@ function _processGetListFields(fields: IFieldInfo[], fieldNames: string[]) {
     if (isNullOrEmptyArray(fields)) {
         return fields as IFieldInfoEX[];
     }
-    let extendedFields = fields.map(f => extendFieldInfo(f, fields));
+    let extendedFields = extendFieldInfos(fields);
 
     if (!isNullOrEmptyArray(fieldNames)) {
         return extendedFields.filter((extendedField) => {

@@ -384,6 +384,10 @@ export function extendFieldInfo(field: IFieldInfo, allFields?: IFieldInfo[]): IF
     return fieldEx;
 }
 
+export function extendFieldInfos(fields: IFieldInfo[]) {
+    return fields.map(f => extendFieldInfo(f, fields));
+}
+
 export function getFieldOutputType(field: IFieldInfo) {
     let outputType = field.TypeAsString;
 
