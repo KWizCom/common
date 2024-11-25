@@ -19,8 +19,12 @@ export function hasOwnProperty(obj: any, prop: string) {
     return false;
 }
 
+/** empty async function */
 /* eslint-disable-next-line @typescript-eslint/no-empty-function */
 export var noop = async () => { };
+/** empty sync function */
+/* eslint-disable-next-line @typescript-eslint/no-empty-function */
+export var noops = () => { };
 
 /** get or create kwizcom object from top window or current window, set allowFromTop if you want to try to get from window.top */
 export function getKWizComGlobal(allowFromTop?: boolean) {
