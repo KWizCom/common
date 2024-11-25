@@ -1346,3 +1346,7 @@ export function getLoadingOverlayHtml(options?: {
 export function getUniqueElementId(id: string = "") {
     return `${id}${getUniqueId()}`;
 }
+
+export function stopEvent(e: Event) {
+    e.stopPropagation();
+}
