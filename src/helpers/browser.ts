@@ -1347,6 +1347,10 @@ export function getUniqueElementId(id: string = "") {
     return `${id}${getUniqueId()}`;
 }
 
-export function stopEvent(e: Event) {
-    e.stopPropagation();
+export function stopEvent(e: {
+    preventDefault(): void;
+    stopPropagation(): void;
+}) {
+    e.stopPropagation && e.stopPropagation();
+    e.preventDefault && e.preventDefault();
 }
