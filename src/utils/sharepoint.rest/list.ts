@@ -664,7 +664,7 @@ export async function ChangeTextFieldMode(
     return !isNullOrUndefined(fieldUpdated);
 }
 
-export default async function ChangeDatetimeFieldMode(
+export async function ChangeDatetimeFieldMode(
     siteUrlOrId: string,
     listIdOrTitle: string,
     includeTime: boolean,
