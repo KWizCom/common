@@ -238,7 +238,7 @@ export function objectValues<T = any>(obj: any): T[] {
     }) as T[];
 }
 
-class DefaultProp<T> {
+export class DefaultProp<T> {
     private _value: T;
     private _defaultValue: T | (() => T);
     private isValid: (value: T) => boolean;

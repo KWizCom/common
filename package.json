@@ -19,7 +19,7 @@
         "./package.json": "./package.json"
     },
     "scripts": {
-        "watch": "tsc -watch",
+        "watch": "tsc -p tsconfig.esm.json -watch",
         "build": "npm run reindex-project && npm run test && npm run build:esm && npm run build:cjs",
         "build:esm": "tsc -p tsconfig.esm.json",
         "build:cjs": "tsc -p tsconfig.cjs.json",

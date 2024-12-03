@@ -4,6 +4,8 @@ import { escapeRegExp } from "./strings";
 //These names aren't allowed for files or folders: .lock, CON, PRN, AUX, NUL, COM0 - COM9, LPT0 - LPT9, _vti_, 
 //desktop.ini, any filename starting with ~$. "_vti_" can't appear anywhere in a file name.
 
+export var ImageFileTypes = ["png", "jpg", "jpeg", "gif", "bmp", "svg", "jfif"];
+
 function _getRegexCollection() {
     return {
         IllegalCharsRegex: new RegExp("[" + escapeRegExp(`"*:<>?/\\|`) + "]", "gi"),
