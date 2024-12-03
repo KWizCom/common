@@ -3,7 +3,7 @@ import { firstIndexOf } from "./collections.base";
 import { LOGO_ANIM } from "./images";
 import { getUniqueId } from "./random";
 import { stripRichTextWhitespace } from "./strings";
-import { isBoolean, isFunction, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, isString, isTypeofFullNameNullOrUndefined, isUndefined } from "./typecheckers";
+import { isBoolean, isFunction, isNotEmptyArray, isNotEmptyString, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, isString, isTypeofFullNameNullOrUndefined, isUndefined } from "./typecheckers";
 
 export function triggerNativeEvent(ele: HTMLElement | Element | Document, eventName: string) {
     if (isNullOrUndefined(ele)) {
@@ -1266,15 +1266,18 @@ export function DisableAnchorInterceptInHtml(html: string) {
 }
 
 export function isChildOf(node: HTMLElement, parent: {
-    class?: string;
-    id?: string;
-    tagName?: string;
+    class?: string | string[];
+    id?: string | string[];
+    tagName?: string | string[];
 }) {
     let _parent = node && node.parentElement;
+    let classes = isNotEmptyString(parent.class) ? [parent.class] : isNotEmptyArray(parent.class) ? parent.class : [];
+    let ids = isNotEmptyString(parent.id) ? [parent.id] : isNotEmptyArray(parent.id) ? parent.id : [];
+    let tagNames = isNotEmptyString(parent.tagName) ? [parent.tagName.toUpperCase()] : isNotEmptyArray(parent.tagName) ? parent.tagName.map(t => t.toUpperCase()) : [];
     while (_parent) {
-        if ((isNullOrEmptyString(parent.id) || _parent.id === parent.id)
-            && (isNullOrEmptyString(parent.class) || _parent.classList.contains(parent.class))
-            && (isNullOrEmptyString(parent.tagName) || _parent.tagName.toUpperCase() === parent.tagName.toUpperCase())
+        if ((ids.filter(id => _parent.id === id).length > 0)
+            && (classes.filter(c => _parent.classList.contains(c)).length > 0)
+            && (tagNames.filter(tagName => _parent.tagName === tagName).length > 0)
         )
             return true;
         _parent = _parent.parentElement;
