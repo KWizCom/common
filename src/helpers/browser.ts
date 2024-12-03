@@ -1266,23 +1266,22 @@ export function DisableAnchorInterceptInHtml(html: string) {
 }
 
 export function isChildOf(node: HTMLElement, parent: {
+    /** parent has one of those classes */
     class?: string | string[];
     id?: string | string[];
     tagName?: string | string[];
 }) {
-    let _parent = node && node.parentElement;
-    let classes = isNotEmptyString(parent.class) ? [parent.class] : isNotEmptyArray(parent.class) ? parent.class : [];
-    let ids = isNotEmptyString(parent.id) ? [parent.id] : isNotEmptyArray(parent.id) ? parent.id : [];
-    let tagNames = isNotEmptyString(parent.tagName) ? [parent.tagName.toUpperCase()] : isNotEmptyArray(parent.tagName) ? parent.tagName.map(t => t.toUpperCase()) : [];
-    while (_parent) {
-        if ((ids.filter(id => _parent.id === id).length > 0)
-            && (classes.filter(c => _parent.classList.contains(c)).length > 0)
-            && (tagNames.filter(tagName => _parent.tagName === tagName).length > 0)
-        )
-            return true;
-        _parent = _parent.parentElement;
-    }
-    return false;
+    let classes = (isNotEmptyString(parent.class) ? [parent.class] : isNotEmptyArray(parent.class) ? parent.class : []).map(c => `.${c}`);
+    let ids = (isNotEmptyString(parent.id) ? [parent.id] : isNotEmptyArray(parent.id) ? parent.id : []).map(id => `#${id}`);
+    let tagNames = (isNotEmptyString(parent.tagName) ? [parent.tagName.toUpperCase()] : isNotEmptyArray(parent.tagName) ? parent.tagName : []).map(tagName => `${tagName.toUpperCase()}`);
+
+    let queySelectorText = [...classes, ...ids, ...tagNames].join(',');
+    if (isNullOrEmptyString(queySelectorText)) return true;
+
+    if (node instanceof HTMLElement)
+        return node.closest(queySelectorText) ? true : false;
+    else
+        return false;
 }
 
 export function findAcestor(ele: HTMLElement, predicate: (ele2: HTMLElement) => boolean) {
