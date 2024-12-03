@@ -1,6 +1,7 @@
+import { jsonClone } from "../../exports-index";
 import { PushNoDuplicate, firstOrNull, makeUniqueArray, toHash } from "../../helpers/collections.base";
 import { jsonStringify } from "../../helpers/json";
-import { NormalizeListName, SPBasePermissions, SchemaXmlToJson, extendFieldInfos } from "../../helpers/sharepoint";
+import { NormalizeListName, SPBasePermissions, SchemaJsonToXml, SchemaXmlToJson, extendFieldInfos } from "../../helpers/sharepoint";
 import { normalizeGuid } from "../../helpers/strings";
 import { SafeIfElse, isBoolean, isNotEmptyArray, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isPromise, isString, isValidGuid } from "../../helpers/typecheckers";
 import { makeServerRelativeUrl, normalizeUrl } from "../../helpers/url";
@@ -603,6 +604,64 @@ export async function UpdateField(siteUrlOrId: string, listIdOrTitle: string, fi
         console.error("You must send an option to update");
         return null;
     }
+}
+
+export default async function changeTextFieldMode(
+    siteUrlOrId: string,
+    listIdOrTitle: string,
+    textMode: "singleline" | "multiline" | "html",
+    currentField: IFieldInfoEX
+) {
+    const newSchema = jsonClone(currentField.SchemaJson);
+    const currentSchemaAttributes = newSchema.Attributes;
+
+    switch (textMode) {
+        case "singleline":
+            let shouldIntermediateUpdate = false;
+
+            if (currentSchemaAttributes.RichText === 'TRUE') {
+                currentSchemaAttributes.RichText = 'FALSE';
+                shouldIntermediateUpdate = true;
+            };
+            if (currentSchemaAttributes.RichTextMode === 'FullHTML') {
+                currentSchemaAttributes.RichTextMode = 'Compatible';
+                shouldIntermediateUpdate = true;
+            };
+
+            if (shouldIntermediateUpdate) {
+                const intermediateSchema = SchemaJsonToXml(newSchema);
+                const intermediateUpdatedField = await UpdateField(siteUrlOrId, listIdOrTitle, currentField.InternalName, {
+                    SchemaXml: intermediateSchema
+                });
+                // Early exit if intermediate change failed.
+                if (isNullOrUndefined(intermediateUpdatedField))
+                    return false;
+            };
+
+            // Actual type update.
+            currentSchemaAttributes.Type = 'Text';
+            delete currentSchemaAttributes.RichTextMode;
+            delete currentSchemaAttributes.RichText;
+            break;
+        case "multiline":
+            currentSchemaAttributes.Type = 'Note';
+            currentSchemaAttributes.RichText = 'FALSE';
+            currentSchemaAttributes.RichTextMode = 'Compatible';
+            break;
+        case "html":
+            currentSchemaAttributes.Type = 'Note';
+            currentSchemaAttributes.RichText = 'TRUE';
+            currentSchemaAttributes.RichTextMode = 'FullHTML';
+            break;
+    }
+
+    const updatedSchema = SchemaJsonToXml(newSchema);
+    const fieldUpdated = await UpdateField(siteUrlOrId, listIdOrTitle, currentField.InternalName, {
+        SchemaXml: updatedSchema
+    });
+
+    // If object is null or undefined then request has failed.
+    return !isNullOrUndefined(fieldUpdated);
 }
 
 export async function DeleteField(siteUrl: string, listIdOrTitle: string, fieldInternalName: string, options?: { DeleteHiddenField?: boolean; }): Promise<boolean> {
