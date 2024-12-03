@@ -606,7 +606,7 @@ export async function UpdateField(siteUrlOrId: string, listIdOrTitle: string, fi
     }
 }
 
-export async function changeTextFieldMode(
+export async function ChangeTextFieldMode(
     siteUrlOrId: string,
     listIdOrTitle: string,
     textMode: "singleline" | "multiline" | "html",
