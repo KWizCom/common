@@ -664,6 +664,39 @@ export async function ChangeTextFieldMode(
     return !isNullOrUndefined(fieldUpdated);
 }
 
+export default async function ChangeDatetimeFieldMode(
+    siteUrlOrId: string,
+    listIdOrTitle: string,
+    includeTime: boolean,
+    currentField: IFieldInfoEX
+) {
+    const dateTimeFormat = 'DateTime';
+    const dateOnlyFormat = 'DateOnly';
+
+    const newSchema = jsonClone(currentField.SchemaJson);
+    const fieldAttributes = newSchema.Attributes;
+    let needUpdate = false;
+    if (includeTime && fieldAttributes.Format === dateOnlyFormat) {
+        needUpdate = true;
+        fieldAttributes.Format = dateTimeFormat;
+    }
+    else if (!includeTime && fieldAttributes.Format === dateTimeFormat) {
+        needUpdate = true;
+        fieldAttributes.Format = dateOnlyFormat;
+    }
+
+    if (needUpdate) {
+        const updatedSchema = SchemaJsonToXml(newSchema);
+        const updateResponse = await UpdateField(siteUrlOrId, listIdOrTitle, currentField.InternalName, {
+            SchemaXml: updatedSchema
+        });
+        return !isNullOrUndefined(updateResponse);
+    }
+
+    // If an already existing format was chosen.
+    return true;
+}
+
 export async function DeleteField(siteUrl: string, listIdOrTitle: string, fieldInternalName: string, options?: { DeleteHiddenField?: boolean; }): Promise<boolean> {
     siteUrl = GetSiteUrl(siteUrl);
 
