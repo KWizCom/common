@@ -1,9 +1,18 @@
 import { IDictionary } from "../types/common.types";
 import { firstIndexOf } from "./collections.base";
 import { LOGO_ANIM } from "./images";
+import { getGlobal } from "./objects";
 import { getUniqueId } from "./random";
 import { stripRichTextWhitespace } from "./strings";
 import { isBoolean, isFunction, isNotEmptyArray, isNotEmptyString, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, isString, isTypeofFullNameNullOrUndefined, isUndefined } from "./typecheckers";
+
+let _global = getGlobal<{
+    registerUrlChangedCallbacks: Function[];
+    urlChangedHandlerRegistered: boolean
+}>("browser", {
+    registerUrlChangedCallbacks: [],
+    urlChangedHandlerRegistered: false
+}, true);
 
 export function triggerNativeEvent(ele: HTMLElement | Element | Document, eventName: string) {
     if (isNullOrUndefined(ele)) {
@@ -1243,16 +1252,36 @@ export function getReactInstanceFromElement(node) {
 
 /** registers a listener to when the browser url changed */
 export function registerUrlChanged(callback: () => void) {
-    let url = window.location.href;
+    if (!_global.registerUrlChangedCallbacks.includes(callback)) {
+        _global.registerUrlChangedCallbacks.push(callback);
+    }
 
-    window.setInterval(() => {
-        if (url !== window.location.href) {
-            url = window.location.href;
-            if (isFunction(callback)) {
-                callback();
-            }
+    if (_global.urlChangedHandlerRegistered === false) {
+        _global.urlChangedHandlerRegistered = true;        
+
+        let executeCallbacks = () => {
+            _global.registerUrlChangedCallbacks.forEach((callbackFunc) => {
+                try {
+                    if (isFunction(callbackFunc)) {
+                        callbackFunc();
+                    }
+                } catch { }
+            })
+        };
+
+        if ("navigation" in window && isFunction(window.navigation.addEventListener)) {
+            window.navigation.addEventListener("navigate", executeCallbacks);
+        } else {
+            let url = window.location.href;
+
+            window.setInterval(() => {
+                if (url !== window.location.href) {
+                    url = window.location.href;
+                    executeCallbacks();
+                }
+            }, 500);
         }
-    }, 333);
+    }
 }
 
 export const DisableAnchorInterceptAttribute = "data-interception";
