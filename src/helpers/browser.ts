@@ -1257,7 +1257,7 @@ export function registerUrlChanged(callback: () => void) {
     }
 
     if (_global.urlChangedHandlerRegistered === false) {
-        _global.urlChangedHandlerRegistered = true;        
+        _global.urlChangedHandlerRegistered = true;
 
         let executeCallbacks = () => {
             _global.registerUrlChangedCallbacks.forEach((callbackFunc) => {
@@ -1269,8 +1269,8 @@ export function registerUrlChanged(callback: () => void) {
             })
         };
 
-        if ("navigation" in window && isFunction(window.navigation.addEventListener)) {
-            window.navigation.addEventListener("navigate", executeCallbacks);
+        if ("navigation" in window && isFunction((window.navigation as any).addEventListener)) {
+            (window.navigation as any).addEventListener("navigate", executeCallbacks);
         } else {
             let url = window.location.href;
 
@@ -1384,4 +1384,17 @@ export function stopEvent(e: {
 }) {
     e.stopPropagation && e.stopPropagation();
     e.preventDefault && e.preventDefault();
+}
+
+/** send in --color or var(--color) and get the computed value for an element */
+export function getCSSVariableValue(value: string, elm: HTMLElement = document.body) {
+    if (value.startsWith("var("))
+        value = value.slice(4, value.length - 1);
+    if (value.startsWith("--")) {
+        var style = getComputedStyle(elm)
+        var varValue = style.getPropertyValue(value);
+        if (!isNullOrEmptyString(varValue))
+            return varValue;
+    }
+    return value;
 }
