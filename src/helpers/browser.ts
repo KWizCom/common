@@ -1336,15 +1336,17 @@ export function loadModernFormsCSS() {
         document.head.appendChild(styleElm);
     }
 }
-export function showLoadingOverlay(elm: HTMLElement, options?: {
+
+interface ILoadingOverlayOptions {
     bgColor?: string;
-    innerHtml?: string;
-}) {
-    let overlay = elm.querySelector('.kw-loading-overlay') as HTMLDivElement;
+    innerHtml?: string;    
+}
+export function showLoadingOverlay(elm: HTMLElement, options?: ILoadingOverlayOptions) {
+    let overlay = elm.querySelector('.kw-loading-overlay') as HTMLDivElement;   
     if (!overlay) {
         overlay = document.createElement("div");
         overlay.className = "kw-loading-overlay";
-        overlay.style.position = "fixed";
+        overlay.style.position = "absolute";
         overlay.style.top = "0";
         overlay.style.left = "0";
         overlay.style.right = "0";
@@ -1354,6 +1356,7 @@ export function showLoadingOverlay(elm: HTMLElement, options?: {
         overlay.style.justifyContent = "center";
         overlay.style.alignItems = "center";
         overlay.style.height = "100%";
+        overlay.style.width = "100%";        
         elm.appendChild(overlay);
     }
     overlay.innerHTML = options && options.innerHtml || `<img src="${LOGO_ANIM}" style="max-width: 30%;max-height: 30%;">`;
@@ -1365,10 +1368,7 @@ export function hideLoadingOverlay(elm: HTMLElement) {
         removeHTMLElement(overlays);
     }
 }
-export function getLoadingOverlayHtml(options?: {
-    bgColor?: string;
-    innerHtml?: string;
-}) {
+export function getLoadingOverlayHtml(options?: ILoadingOverlayOptions) {
     let overlay = document.createElement("div");
     showLoadingOverlay(overlay, options);
     return overlay.innerHTML;

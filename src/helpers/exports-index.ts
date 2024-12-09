@@ -10,6 +10,7 @@ export * from './color';
 export * from './cookies';
 export * from './date';
 export * from './debug';
+export * from './diagrams';
 export * from './emails';
 export * from './eval';
 export * from './file';
