@@ -1,6 +1,6 @@
 import assert from 'assert/strict';
 import test from 'node:test';
-import { ReplaceTokensInDictionary, capitalizeFirstLetter, escapeXml, maskString, replaceAll, replaceRegex } from './strings';
+import { ReplaceTokensInDictionary, capitalizeFirstLetter, escapeXml, maskString, replaceAll, replaceRegex, splitString } from './strings';
 
 test('replaceAll', t => {
     assert.strictEqual(replaceAll("hello old#@! world old#@! !", "old#@!", "new!@$"), "hello new!@$ world new!@$ !");
@@ -99,4 +99,25 @@ test('ReplaceTokensInDictionary', async t => {
     expected = { a: "hello", b: "hello token1 token 2", c: "token 2" };
     ReplaceTokensInDictionary(dic, tokens);
     assert.strictEqual(JSON.stringify(dic), JSON.stringify(expected));
+});
+
+test('splitString', async t => {
+    const str = "abcd|1234|efgh|5678";
+    let expected = [
+        'abc', 'd|1',
+        '234', '|ef',
+        'gh|', '567',
+        '8'
+    ];
+    assert.strictEqual(JSON.stringify(splitString(str, { maxLength: 3 })), JSON.stringify(expected));
+    expected = [
+        'abcd', '1234',
+        'efgh', '5678'
+    ];
+    assert.strictEqual(JSON.stringify(splitString(str, { marker: "|" })), JSON.stringify(expected));
+    expected = [
+        'ab', 'cd', '12', '34',
+        'ef', 'gh', '56', '78'
+    ];
+    assert.strictEqual(JSON.stringify(splitString(str, { marker: "|", maxLength: 2 })), JSON.stringify(expected));
 });

@@ -1,5 +1,5 @@
 import { IDictionary } from "../types/common.types";
-import { makeUniqueArray } from "./collections.base";
+import { filterEmptyEntries, makeUniqueArray } from "./collections.base";
 import { isNullOrEmptyString, isNullOrUndefined, isNumber, isString } from "./typecheckers";
 
 export function endsWith(str: string, value: string, ignoreCase?: boolean): boolean {
@@ -315,4 +315,24 @@ export function maskString(str: string, options?: {
     const suffix = sliceEnd >= 0 ? str.slice(sliceEnd) : str;
 
     return `${prefix}${mask}${suffix}`;
+}
+
+export function splitString(str: string, options: { maxLength?: number; marker?: string | RegExp; clearEmptyEntries?: boolean }) {
+    let strArr: string[] = [str];
+    if (!isNullOrUndefined(options.marker)) strArr = str.split(options.marker);
+    if (isNumber(options.maxLength) && options.maxLength > 0) {
+        let splitted: string[] = [];
+        strArr.forEach(currentStr => {
+            while (currentStr.length > 0) {
+                splitted.push(currentStr.slice(0, options.maxLength));
+                currentStr = currentStr.slice(options.maxLength);
+            }
+        });
+
+        strArr = splitted;
+    }
+
+    if (options.clearEmptyEntries)
+        strArr = filterEmptyEntries(strArr);
+    return strArr;
 }
