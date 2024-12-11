@@ -131,8 +131,8 @@ export function downloadFile(url: string) {
     document.body.removeChild(link);
 }
 
-export function copyTextToClipboard(text: string): boolean {
-    var input = document.createElement("input");
+export function copyTextToClipboard(text: string, multiline?: boolean): boolean {
+    var input = document.createElement(multiline ? "textarea" : "input");
     input.value = text;
     input.style.position = "absolute";
     input.style.top = "-100px";
@@ -1339,10 +1339,10 @@ export function loadModernFormsCSS() {
 
 interface ILoadingOverlayOptions {
     bgColor?: string;
-    innerHtml?: string;    
+    innerHtml?: string;
 }
 export function showLoadingOverlay(elm: HTMLElement, options?: ILoadingOverlayOptions) {
-    let overlay = elm.querySelector('.kw-loading-overlay') as HTMLDivElement;   
+    let overlay = elm.querySelector('.kw-loading-overlay') as HTMLDivElement;
     if (!overlay) {
         overlay = document.createElement("div");
         overlay.className = "kw-loading-overlay";
@@ -1356,7 +1356,7 @@ export function showLoadingOverlay(elm: HTMLElement, options?: ILoadingOverlayOp
         overlay.style.justifyContent = "center";
         overlay.style.alignItems = "center";
         overlay.style.height = "100%";
-        overlay.style.width = "100%";        
+        overlay.style.width = "100%";
         elm.appendChild(overlay);
     }
     overlay.innerHTML = options && options.innerHtml || `<img src="${LOGO_ANIM}" style="max-width: 30%;max-height: 30%;">`;

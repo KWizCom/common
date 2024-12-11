@@ -4,7 +4,10 @@ import { escapeRegExp } from "./strings";
 //These names aren't allowed for files or folders: .lock, CON, PRN, AUX, NUL, COM0 - COM9, LPT0 - LPT9, _vti_, 
 //desktop.ini, any filename starting with ~$. "_vti_" can't appear anywhere in a file name.
 
-export var ImageFileTypes = ["png", "jpg", "jpeg", "gif", "bmp", "svg", "jfif"];
+export const ImageFileTypes = ["png", "jpg", "jpeg", "gif", "bmp", "svg", "webp"];
+export const DocumentFileTypes = ["docx", "doc", "pdf", "txt", "rtf", "odt"];
+export const VideoFileTypes = ["mp4", "mov", "wmv", "avi", "mkv", "flv", "webm"];
+export const OfficeFileTypes = ["docx", "doc", "xlsx", "xls", "pptx", "ppt", "csv"];
 
 function _getRegexCollection() {
     return {
