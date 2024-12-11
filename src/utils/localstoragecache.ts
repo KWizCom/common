@@ -243,7 +243,12 @@ export function getCacheItem<T>(key: string, options?: {
 
     if (typeof (_cache[key]) !== "undefined"
         && _cache[key] !== null) {
-        return _cache[key] as T;
+        let isExpired = _isKeyExpired(keyWithPrefix);
+        if (!isExpired) {
+            return _cache[key] as T;
+        } 
+        //else remove it from cache
+        removeCacheItem(key);        
     }
 
     if (isLocalStorageSupported()) {
@@ -305,14 +310,14 @@ export function setCacheItem(key: string, value: any, expiration: number | ILoca
     }
 }
 
-export function removeCacheItem(key: string) {
-    key = key.toLowerCase();
+export function removeCacheItem(keyNoPrefix: string) {
+    keyNoPrefix = keyNoPrefix.toLowerCase();
     let _cache = _getCache();
-    delete _cache[key];
-    let keyWithPrefix = keyPrefix + key;
+    delete _cache[keyNoPrefix];
+    let keyWithPrefix = keyPrefix + keyNoPrefix;
 
     if (isLocalStorageSupported()) {
-        _removeItem(key);//in case we have an old one
+        _removeItem(keyNoPrefix);//in case we have an old one
         _removeItem(keyWithPrefix);
     }
 }
