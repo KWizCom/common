@@ -10,6 +10,7 @@ export interface IFieldJsonSchema {
         [key: string]: string;
     };
     Customizations: { [PropertyName: string]: string; };
+    Choices?: string[];
 }
 
 export interface IFieldJsonSchemaLookup extends IFieldJsonSchema {
@@ -597,7 +598,7 @@ export interface IFolderInfo extends IFolderBasicInfo {
     TimeLastModified: string;
     UniqueId: string;
     WelcomePage: string;
-    Folders?: IFolderInfo[]    
+    Folders?: IFolderInfo[]
 }
 
 // eslint-disable-next-line no-shadow

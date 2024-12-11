@@ -119,24 +119,33 @@ export function SchemaJsonToXml(json: IFieldJsonSchema): string {
     let doc = new Document();
     let fieldElm = doc.createElement("Field");
     forEach(json.Attributes, (name, value) => {
-        fieldElm.setAttribute(name, value);
+      fieldElm.setAttribute(name, value);
     });
     if (Object.keys(json.Customizations).length) {
-        let custElm = doc.createElement("Customization");
-        fieldElm.appendChild(custElm);
-        let arrElm = doc.createElement("ArrayOfProperty");
-        custElm.appendChild(arrElm);
-        forEach(json.Customizations, (name, value) => {
-            let propElm = doc.createElement("Property");
-            arrElm.appendChild(propElm);
-
-            let nameElm = doc.createElement("Name");
-            propElm.appendChild(nameElm);
-            let valElm = doc.createElement("Value");
-            propElm.appendChild(valElm);
-            nameElm.innerText = name;
-            valElm.innerText = value;
-        });
+      let custElm = doc.createElement("Customization");
+      fieldElm.appendChild(custElm);
+      let arrElm = doc.createElement("ArrayOfProperty");
+      custElm.appendChild(arrElm);
+      forEach(json.Customizations, (name, value) => {
+        let propElm = doc.createElement("Property");
+        arrElm.appendChild(propElm);
+  
+        let nameElm = doc.createElement("Name");
+        propElm.appendChild(nameElm);
+        let valElm = doc.createElement("Value");
+        propElm.appendChild(valElm);
+        nameElm.textContent = name;
+        valElm.textContent = value;
+      });
+    }
+    if (isNotEmptyArray(json["Choices"])) {
+      let choices = doc.createElement("CHOICES");
+      fieldElm.appendChild(choices);
+      json["Choices"].forEach(c => {
+        let choice = doc.createElement("CHOICE");
+        choice.textContent = c;
+        choices.appendChild(choice);
+      });
     }
     return fieldElm.outerHTML;
 }

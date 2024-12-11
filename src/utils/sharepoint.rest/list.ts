@@ -417,6 +417,7 @@ export async function CreateField(siteUrl: string, listIdOrTitle: string, option
     Required?: boolean;
     Indexed?: boolean;
     SchemaXml?: string;
+    /** requies Name and StaticName for the internal name */
     SchemaXmlSpecificInternalName?: boolean;
     SkipAddToDefaultView?: boolean;
     ClientSideComponentId?: string;
