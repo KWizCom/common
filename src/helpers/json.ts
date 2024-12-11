@@ -37,3 +37,9 @@ export function jsonStringify(obj: any, space?: number): string {
     allKeys.sort();
     return JSON.stringify(obj, allKeys, space);
 }
+/** stringify json object without quotes on property names */
+export function jsonStringifyNoQuotes(obj: any) {
+    return jsonStringify(obj, 2).replace(/^[\t ]*"[^:\n\r]+(?<!\\)":/gm, function (match) {
+        return match.replace(/"/g, "");
+    });
+}
