@@ -5,6 +5,7 @@ import { getGlobal } from "./objects";
 import { getUniqueId } from "./random";
 import { stripRichTextWhitespace } from "./strings";
 import { isBoolean, isFunction, isNotEmptyArray, isNotEmptyString, isNullOrEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, isString, isTypeofFullNameNullOrUndefined, isUndefined } from "./typecheckers";
+import { getURLExtension, isDataUrl } from "./url";
 
 let _global = getGlobal<{
     registerUrlChangedCallbacks: Function[];
@@ -1397,4 +1398,32 @@ export function getCSSVariableValue(value: string, elm: HTMLElement = document.b
             return varValue;
     }
     return value;
+}
+
+export function convertImageToBase64(image: HTMLImageElement, quality: ImageSmoothingQuality = "medium") {
+    if(!isElement(image) || isNullOrEmptyString(image.src)){
+        return;
+    }
+
+    let canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    let ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = quality;
+    ctx.drawImage(image, 0, 0, image.width, image.height);
+    
+    let type = "image/png"
+    if (!isDataUrl(image.src)) {
+        let ext = getURLExtension(image.src);
+        if (!isNullOrEmptyString(ext)) {
+            ext = ext.toLowerCase();
+            if (ext !== "png") {
+                type = "image/jpeg";
+            }
+        }
+    }    
+    
+    image.src = canvas.toDataURL(type, quality === "high" ? 1 : quality === "medium" ? 0.75 : 0.5);
 }
