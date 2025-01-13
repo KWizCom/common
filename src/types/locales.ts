@@ -115,10 +115,11 @@ declare global {
     interface Date {
         /**
         * Formats a date by using the invariant (culture-independent) culture.
+        * @deprecated this is only available when loading KLocals known script
         */
         format(format: string): string;
     }
-    
+
     interface IKWizComGlobals {
         kLocales?: IKLocales;
     }
