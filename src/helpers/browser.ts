@@ -1400,30 +1400,50 @@ export function getCSSVariableValue(value: string, elm: HTMLElement = document.b
     return value;
 }
 
-export function convertImageToBase64(image: HTMLImageElement, quality: ImageSmoothingQuality = "medium") {
-    if(!isElement(image) || isNullOrEmptyString(image.src)){
+/** 
+ * Converts an HTMLImageElement to base 64 and resizes the image to the exact dimensions of the HTMLImageElement
+ */
+export function convertImageToBase64(imgEle: HTMLImageElement, quality: ImageSmoothingQuality = "medium") {
+    if (!isElement(imgEle)
+        || (isNullOrEmptyString(imgEle.src) && isNullOrEmptyString(imgEle.getAttribute("xlink:href")))) {
         return;
     }
 
+    let xlinkHref = imgEle.getAttribute("xlink:href");
+    let useXlinkHref = !isNullOrEmptyString(xlinkHref);
+    let src = useXlinkHref ? xlinkHref : imgEle.src;
+
     let canvas = document.createElement("canvas");
-    canvas.width = image.width;
-    canvas.height = image.height;
+    canvas.width = imgEle.width;
+    canvas.height = imgEle.height;
 
     let ctx = canvas.getContext("2d");
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = quality;
-    ctx.drawImage(image, 0, 0, image.width, image.height);
-    
+    ctx.drawImage(imgEle, 0, 0, imgEle.width, imgEle.height);
+
     let type = "image/png"
-    if (!isDataUrl(image.src)) {
-        let ext = getURLExtension(image.src);
+    if (!isDataUrl(src)) {
+        let ext = getURLExtension(src);
         if (!isNullOrEmptyString(ext)) {
             ext = ext.toLowerCase();
             if (ext !== "png") {
                 type = "image/jpeg";
             }
         }
-    }    
-    
-    image.src = canvas.toDataURL(type, quality === "high" ? 1 : quality === "medium" ? 0.75 : 0.5);
+    }
+
+    try {
+        let dataURL = canvas.toDataURL(type, quality === "high" ? 1 : quality === "medium" ? 0.75 : 0.5);
+
+        if (useXlinkHref) {
+            imgEle.setAttribute("xlink:href", dataURL);
+        } else {
+            imgEle.src = dataURL;
+        }
+    } catch {
+    }
+
+    canvas = null;
+    ctx = null;
 }
