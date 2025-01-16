@@ -7,7 +7,15 @@ export interface IMSALConfig {
         authority: string;
         redirectUri: string;
     }
- }
+}
+export interface IMSALRequestOptions {
+    scopes?: string[];
+    /** the custom state you would like to be passed to your login handler, otherwise it sends the current window.location.href */
+    state?: string;
+    /** turn this on if you want to allow the option to redirect if popup are blocked. */
+    allowRedirect?: boolean;
+
+}
 
 export const MSALSampleLoginPopupScript = `<p id="msg">please wait...</p>
 <script>
@@ -40,7 +48,7 @@ finish();
 export interface IMSAL {
     AutoDiscoverTenantInfo: () => Promise<ITenantInfo>;
     GetConfig: (clientId: string, authority: string, redirectUri: string) => Promise<IMSALConfig>;
-    GetTokenPopup: (config: IMSALConfig, requestOptions?: { scopes?: string[]; }) => Promise<string>;
+    GetTokenPopup: (config: IMSALConfig, requestOptions?: IMSALRequestOptions) => Promise<string>;
 }
 
 declare global {
