@@ -8,7 +8,7 @@ import { makeServerRelativeUrl, normalizeUrl } from "../../helpers/url";
 import { IDictionary } from "../../types/common.types";
 import { IRestOptions, contentTypes, jsonTypes } from "../../types/rest.types";
 import { BaseTypes, FieldTypeAsString, FieldTypes, IFieldInfo, IFieldInfoEX, IFieldInfoExHash, IFieldJsonSchema, IFieldLookupInfo, ISPEventReceiver, ListTemplateTypes, PageType, SPBasePermissionKind } from "../../types/sharepoint.types";
-import { GeListItemsFoldersBehaviour, IListWorkflowAssociation, IRestItem, ListExperienceOptions, iContentType, iList, iListView } from "../../types/sharepoint.utils.types";
+import { GeListItemsFoldersBehaviour, IListWorkflowAssociation, IRestItem, ListExperienceOptions, iContentType, iList, iListVersionSettings, iListView } from "../../types/sharepoint.utils.types";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl, LIST_EXPAND, LIST_SELECT } from "./common";
@@ -1479,4 +1479,70 @@ export async function UpdateListExperience(siteUrl: string, listId: string, expe
         logger.error(e);
     }
     return false;
+}
+
+export async function GetListVersionSettings(siteUrlOrId: string, listIdOrTitle: string, options?: { refreshCache?: boolean }): Promise<iListVersionSettings> {
+    let siteUrl = GetSiteUrl(siteUrlOrId);
+
+    if (isNullOrEmptyString(listIdOrTitle)) return null;
+
+    try {
+        const result = await GetJson<iListVersionSettings>(GetListRestUrl(siteUrl, listIdOrTitle) + `?$select=EnableMinorVersions,EnableVersioning,DraftVersionVisibility,MajorWithMinorVersionsLimit,MajorVersionLimit,EnableModeration`, null, {
+            allowCache: options && options.refreshCache ? false : true,
+            jsonMetadata: jsonTypes.nometadata
+        });
+        return result;
+    } catch {
+        const result_1: iListVersionSettings = null;
+        return result_1;
+    }
+}
+export async function SetListVersionSettings(siteUrlOrId: string, listIdOrTitle: string, options: {
+    newSettings: Pick<iListVersionSettings, "EnableMinorVersions" | "EnableModeration">
+}): Promise<iListVersionSettings> {
+    let siteUrl = GetSiteUrl(siteUrlOrId);
+
+    if (isNullOrEmptyString(listIdOrTitle)) return null;
+
+    try {
+        function updateProp(prop: Partial<iListVersionSettings>) {
+            return GetJson<iListVersionSettings>(GetListRestUrl(siteUrl, listIdOrTitle),
+                jsonStringify(prop), {
+                method: "POST", spWebUrl: siteUrl,
+                xHttpMethod: "MERGE",
+                jsonMetadata: jsonTypes.nometadata
+            });
+        }
+
+        const currentValues = await GetListVersionSettings(siteUrlOrId, listIdOrTitle, { refreshCache: true });
+        //replace undefined props with current values
+        const newSettings: iListVersionSettings = { ...currentValues, ...options.newSettings }
+
+
+        //need to do some of the changes one by one...
+        if (newSettings.EnableMinorVersions) {
+            if (!currentValues.EnableMinorVersions)
+                await updateProp({ EnableMinorVersions: true });
+        }
+        else {
+            if (currentValues.EnableMinorVersions) {
+                await updateProp({ EnableMinorVersions: false });
+            }
+        }
+
+        if (newSettings.EnableMinorVersions && newSettings.EnableModeration) {
+            if (!currentValues.EnableModeration)
+                await updateProp({ EnableModeration: true });
+        }
+        else {
+            if (currentValues.EnableModeration) {
+                await updateProp({ EnableModeration: false });
+            }
+        }
+
+        return await GetListVersionSettings(siteUrlOrId, listIdOrTitle, { refreshCache: true });
+    } catch {
+        const result: iListVersionSettings = null;
+        return result;
+    }
 }

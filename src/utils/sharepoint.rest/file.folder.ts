@@ -152,23 +152,23 @@ export async function UploadFile(siteUrl: string, folderServerRelativeUrl: strin
 }
 
 export async function PublishFile(siteUrl: string, fileUrl: string, comment: string = "") {
-    let result = await _moderateFile(siteUrl, fileUrl, "publish");
+    let result = await _moderateFile(siteUrl, fileUrl, "publish", comment);
     return result;
 }
 
 export async function UnpublishFile(siteUrl: string, fileUrl: string, comment: string = "") {
-    let result = await _moderateFile(siteUrl, fileUrl, "unpublish");
+    let result = await _moderateFile(siteUrl, fileUrl, "unpublish", comment);
     return result;
 }
 
 export async function ApproveFile(siteUrl: string, fileUrl: string, comment: string = "") {
     siteUrl = GetSiteUrl(siteUrl);
-    let result = await _moderateFile(siteUrl, fileUrl, "approve");
+    let result = await _moderateFile(siteUrl, fileUrl, "approve", comment);
     return result;
 }
 
 export async function RejectFile(siteUrl: string, fileUrl: string, comment: string = "") {
-    let result = await _moderateFile(siteUrl, fileUrl, "deny");
+    let result = await _moderateFile(siteUrl, fileUrl, "deny", comment);
     return result;
 }
 
