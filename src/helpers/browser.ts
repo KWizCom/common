@@ -1413,6 +1413,15 @@ export function convertImageToBase64(imgEle: HTMLImageElement, quality: ImageSmo
     let useXlinkHref = !isNullOrEmptyString(xlinkHref);
     let src = useXlinkHref ? xlinkHref : imgEle.src;
 
+    let isCrossOrigin = !src.toLowerCase().startsWith(window.location.origin.toLowerCase());
+    let crossOriginImg: HTMLImageElement = null;
+
+    if (isCrossOrigin === true) {
+        crossOriginImg = new Image();
+        crossOriginImg.crossOrigin = "use-credentials";
+        crossOriginImg.src = src;
+    }
+
     let canvas = document.createElement("canvas");
     canvas.width = imgEle.width;
     canvas.height = imgEle.height;
@@ -1420,7 +1429,7 @@ export function convertImageToBase64(imgEle: HTMLImageElement, quality: ImageSmo
     let ctx = canvas.getContext("2d");
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = quality;
-    ctx.drawImage(imgEle, 0, 0, imgEle.width, imgEle.height);
+    ctx.drawImage(crossOriginImg || imgEle, 0, 0, imgEle.width, imgEle.height);
 
     let type = "image/png"
     if (!isDataUrl(src)) {
@@ -1433,17 +1442,16 @@ export function convertImageToBase64(imgEle: HTMLImageElement, quality: ImageSmo
         }
     }
 
+    let dataURL: string = null;
     try {
-        let dataURL = canvas.toDataURL(type, quality === "high" ? 1 : quality === "medium" ? 0.75 : 0.5);
-
-        if (useXlinkHref) {
-            imgEle.setAttribute("xlink:href", dataURL);
-        } else {
-            imgEle.src = dataURL;
-        }
+        dataURL = canvas.toDataURL(type, quality === "high" ? 1 : quality === "medium" ? 0.75 : 0.5);        
     } catch {
+        dataURL = null;
     }
 
     canvas = null;
     ctx = null;
+    crossOriginImg = null;
+    
+    return dataURL;
 }
