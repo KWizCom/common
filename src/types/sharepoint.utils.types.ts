@@ -76,6 +76,25 @@ export interface iList {
     ListExperienceOptions?: ListExperienceOptions;
 }
 
+export enum DraftVisibilityType {
+    Reader = 0,
+    /** default */
+    Author = 1,
+    /** approvers, and the person who submitted the draft */
+    Approver = 2
+}
+
+export interface iListVersionSettings {
+    /** saving creates a draft */
+    EnableMinorVersions: boolean;
+    /** @deprecated versioning is enabled. (this is now always on in M365 libraries) */
+    EnableVersioning: boolean;
+    DraftVersionVisibility: DraftVisibilityType;
+    MajorWithMinorVersionsLimit: number;
+    MajorVersionLimit: number;
+    EnableModeration: boolean;
+}
+
 export interface iListView {
     Title: string;
     Id: string;
