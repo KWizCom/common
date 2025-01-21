@@ -1401,57 +1401,83 @@ export function getCSSVariableValue(value: string, elm: HTMLElement = document.b
 }
 
 /** 
- * Converts an HTMLImageElement to base 64 and resizes the image to the exact dimensions of the HTMLImageElement
+ * Converts an HTMLImageElement/SVGImageElement to base 64 and resizes the image to the exact dimensions of the element.
+ * The following image types are supported: jpg, jpeg, gif, png, webp, bmp
  */
-export function convertImageToBase64(imgEle: HTMLImageElement, quality: ImageSmoothingQuality = "medium") {
+export async function convertImageToBase64(imgEle: HTMLImageElement | SVGImageElement, quality: ImageSmoothingQuality = "medium"): Promise<string> {
     if (!isElement(imgEle)
         || (isNullOrEmptyString(imgEle.src) && isNullOrEmptyString(imgEle.getAttribute("xlink:href")))) {
-        return;
+        return null;
     }
 
-    let xlinkHref = imgEle.getAttribute("xlink:href");
-    let useXlinkHref = !isNullOrEmptyString(xlinkHref);
-    let src = useXlinkHref ? xlinkHref : imgEle.src;
+    return new Promise((resolve) => {
+        let xlinkHref = imgEle.getAttribute("xlink:href");
+        let useXlinkHref = !isNullOrEmptyString(xlinkHref);
+        let src = useXlinkHref ? xlinkHref : imgEle.src;
 
-    let isCrossOrigin = !src.toLowerCase().startsWith(window.location.origin.toLowerCase());
-    let crossOriginImg: HTMLImageElement = null;
-
-    if (isCrossOrigin === true) {
-        crossOriginImg = new Image();
-        crossOriginImg.crossOrigin = "use-credentials";
-        crossOriginImg.src = src;
-    }
-
-    let canvas = document.createElement("canvas");
-    canvas.width = imgEle.width;
-    canvas.height = imgEle.height;
-
-    let ctx = canvas.getContext("2d");
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = quality;
-    ctx.drawImage(crossOriginImg || imgEle, 0, 0, imgEle.width, imgEle.height);
-
-    let type = "image/png"
-    if (!isDataUrl(src)) {
-        let ext = getURLExtension(src);
-        if (!isNullOrEmptyString(ext)) {
-            ext = ext.toLowerCase();
-            if (ext !== "png") {
-                type = "image/jpeg";
+        let type = "image/png"
+        if (!isDataUrl(src)) {
+            let ext = getURLExtension(src);
+            if (!isNullOrEmptyString(ext)) {
+                ext = ext.toLowerCase();
+                if (ext !== "png") {
+                    type = "image/jpeg";
+                }
             }
         }
-    }
+        
+        let height = 0;
+        let width = 0;
 
-    let dataURL: string = null;
-    try {
-        dataURL = canvas.toDataURL(type, quality === "high" ? 1 : quality === "medium" ? 0.75 : 0.5);        
-    } catch {
-        dataURL = null;
-    }
+        if (imgEle instanceof SVGImageElement || useXlinkHref || imgEle.tagName === "image") {
+            width = parseInt(imgEle.getAttribute("width"));
+            height = parseInt(imgEle.getAttribute("height"));
+        } else {
+            width = imgEle.width;
+            height = imgEle.height;
+        }
 
-    canvas = null;
-    ctx = null;
-    crossOriginImg = null;
-    
-    return dataURL;
+        let canvas = document.createElement("canvas");
+        canvas.height = height;
+        canvas.width = width;
+
+        let ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = quality;        
+
+        let isCrossOrigin = !src.toLowerCase().startsWith(window.location.origin.toLowerCase());
+        let crossOriginImg = new Image();
+
+        crossOriginImg.onload = () => {            
+            let dataURL: string = null;
+            try {
+                ctx.drawImage(crossOriginImg, 0, 0, width, height);
+                dataURL = canvas.toDataURL(type, quality === "high" ? 1 : quality === "medium" ? 0.75 : 0.5);
+            } catch {
+                dataURL = null;
+            }
+
+            canvas = null;
+            ctx = null;
+            crossOriginImg = null;
+
+            resolve(dataURL);
+        };
+
+        crossOriginImg.onerror = () => {
+            canvas = null;
+            ctx = null;
+            crossOriginImg = null;
+
+            resolve(null);
+        };
+
+        if (isCrossOrigin === true) {
+            crossOriginImg.crossOrigin = "anonymous";            
+        } else {
+            crossOriginImg.crossOrigin = "use-credentials";            
+        }
+
+        crossOriginImg.src = src;
+    });
 }
