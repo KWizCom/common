@@ -1,5 +1,5 @@
 import { jsonStringify } from "../../helpers/json";
-import { isNotEmptyArray, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, newGuid } from "../../helpers/typecheckers";
+import { isNotEmptyArray, isNotEmptyString, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, isString, newGuid } from "../../helpers/typecheckers";
 import { encodeURIComponentEX, makeServerRelativeUrl, normalizeUrl } from "../../helpers/url";
 import { IDictionary } from "../../types/common.types";
 import { IRequestBody, IRestOptions, IRestResponseType, jsonTypes } from "../../types/rest.types";
@@ -176,7 +176,8 @@ async function _moderateFile(siteUrl: string, fileUrl: string, action: "publish"
     siteUrl = GetSiteUrl(siteUrl);
     let fileServerRelativeUrl = makeServerRelativeUrl(fileUrl, siteUrl);
     try {
-        let publishUrl = `${GetRestBaseUrl(siteUrl)}/Web/getFileByServerRelativeUrl('${fileServerRelativeUrl}')/${action}('${comment}')`;
+        let hasComments = !isNullOrEmptyString(comment);
+        let publishUrl = `${GetRestBaseUrl(siteUrl)}/Web/getFileByServerRelativeUrl('${fileServerRelativeUrl}')/${action}${hasComments ? `(@a1)?@a1=%27${encodeURIComponentEX(comment, { singleQuoteMultiplier: 2 })}%27` : '()'}`;
         let publishResult = await GetJson<{ "odata.null": boolean }>(publishUrl, null, {
             method: "POST",
             jsonMetadata: jsonTypes.nometadata,
@@ -185,7 +186,7 @@ async function _moderateFile(siteUrl: string, fileUrl: string, action: "publish"
         return !isNullOrUndefined(publishResult) && publishResult["odata.null"] === true;
     } catch {
     }
-    return null;
+    return false;
 }
 
 export function RecycleFile(siteUrl: string, fileServerRelativeUrl: string): Promise<boolean> {
@@ -257,29 +258,66 @@ export function GetFileSync<T>(siteUrl: string, fileServerRelativeUrl: string, r
         };
 }
 
+/** @deprecated use GetFileEx */
 export function GetFile<T>(siteUrl: string, fileServerRelativeUrl: string, allowCache?: boolean, responseType?: IRestResponseType): Promise<{ Exists: boolean; Content?: T; }> {
+    return GetFileEx(siteUrl, fileServerRelativeUrl, { allowCache, responseType });
+}
+
+export async function GetFileEx<T>(siteUrl: string, fileServerRelativeUrl: string, options?: {
+    allowCache?: boolean; responseType?: IRestResponseType;
+    /** version #.# or version ID as number */
+    version?: string | number;
+}): Promise<{ Exists: boolean; Content?: T; }> {
     siteUrl = GetSiteUrl(siteUrl);
 
-    let options: IRestOptions = { ...(allowCache === true ? shortLocalCache : noLocalCache), forceCacheUpdate: allowCache !== true };
-    if (!isNullOrUndefined(responseType)) {
-        options.responseType = responseType;
+    let restOptions: IRestOptions = { ...(options?.allowCache === true ? shortLocalCache : noLocalCache), forceCacheUpdate: options?.allowCache !== true };
+    if (!isNullOrUndefined(options?.responseType)) {
+        restOptions.responseType = options?.responseType;
     }
 
-    let fileRestUrl = GetFileRestUrl(siteUrl, fileServerRelativeUrl);
-    if (!options.forceCacheUpdate && reloadCacheFileModifiedRecently(siteUrl, fileServerRelativeUrl)) {
-        options.forceCacheUpdate = true;
+    let version = options?.version;
+    if (isNumber(version) && version > 0 || isNotEmptyString(version)) {
+        //get content of specific version
+        let fileSiteRelativeUrl = fileServerRelativeUrl.slice(siteUrl.length - 1);
+        let versionUrl = `${siteUrl}/_vti_history/${FileVersionToVersionId(options.version)}${fileSiteRelativeUrl}`;
+        try {
+            let versionContent = await GetJson<T>(versionUrl, undefined, restOptions);
+            return { Exists: isString(versionContent), Content: versionContent };
+        } catch (e) {
+            return { Exists: false };
+        }
     }
+    else {
+        let fileRestUrl = GetFileRestUrl(siteUrl, fileServerRelativeUrl);
+        if (!restOptions.forceCacheUpdate && reloadCacheFileModifiedRecently(siteUrl, fileServerRelativeUrl)) {
+            restOptions.forceCacheUpdate = true;
+        }
 
-    return GetJson<T>(`${fileRestUrl}/$value`, null, options).then(r => {
-        return {
-            Exists: true,
-            Content: r
-        };
-    }).catch<{ Exists: boolean; Content?: T; }>(() => {
-        return {
-            Exists: false
-        };
-    });
+        return GetJson<T>(`${fileRestUrl}/$value`, null, restOptions).then(r => {
+            return {
+                Exists: true,
+                Content: r
+            };
+        }).catch<{ Exists: boolean; Content?: T; }>(() => {
+            return {
+                Exists: false
+            };
+        });
+    }
+}
+
+/** version: 1.5 >> version ID for history */
+export function FileVersionToVersionId(version: string | number) {
+    try {
+        if (isNumber(version)) return version;
+        const vSplit = version.split('.');
+        const major = parseInt(vSplit[0], 10);
+        const minor = parseInt(vSplit[1], 10);
+        let versionId = (major * 512) + minor;
+        return versionId;
+    }
+    catch (e) { }
+    return null;
 }
 
 var $reloadCacheFileModifiedRecentlyFlagged: string[] = [];

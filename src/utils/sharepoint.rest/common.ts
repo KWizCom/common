@@ -79,6 +79,11 @@ export function DecodeFieldValuesAsTextKey(key: string): string {
     return key.replace(/_x005f_/g, "_").replace('OData__', '_');
 }
 
+/** Replaces _ with _x005f_, except OData_ at the start */
+export function EncodeFieldValuesAsTextKey(key: string): string {
+    return key.replace('OData_', '~').replace(/_/g, "_x005f_").replace('~', 'OData_');
+}
+
 /** Gets REST FieldValuesAsText or FieldValuesForEdit and fix their column names so that you can get a field value by its internal name */
 export function DecodeFieldValuesAsText(FieldValuesAsText: IDictionary<string>) {
     return DecodeFieldValuesForEdit(FieldValuesAsText);
