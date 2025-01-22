@@ -270,12 +270,14 @@ export async function GetFileEx<T>(siteUrl: string, fileServerRelativeUrl: strin
 }): Promise<{ Exists: boolean; Content?: T; }> {
     siteUrl = GetSiteUrl(siteUrl);
 
-    let restOptions: IRestOptions = { ...(options?.allowCache === true ? shortLocalCache : noLocalCache), forceCacheUpdate: options?.allowCache !== true };
-    if (!isNullOrUndefined(options?.responseType)) {
-        restOptions.responseType = options?.responseType;
+    options = options || {};
+
+    let restOptions: IRestOptions = { ...(options.allowCache === true ? shortLocalCache : noLocalCache), forceCacheUpdate: options.allowCache !== true };
+    if (!isNullOrUndefined(options.responseType)) {
+        restOptions.responseType = options.responseType;
     }
 
-    let version = options?.version;
+    let version = options.version;
     if (isNumber(version) && version > 0 || isNotEmptyString(version)) {
         //get content of specific version
         let fileSiteRelativeUrl = fileServerRelativeUrl.slice(siteUrl.length - 1);
