@@ -1,5 +1,5 @@
 import { jsonStringify } from "../../helpers/json";
-import { isNotEmptyArray, isNotEmptyString, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, isString, newGuid } from "../../helpers/typecheckers";
+import { isNotEmptyArray, isNotEmptyString, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, newGuid } from "../../helpers/typecheckers";
 import { encodeURIComponentEX, makeServerRelativeUrl, normalizeUrl } from "../../helpers/url";
 import { IDictionary } from "../../types/common.types";
 import { IRequestBody, IRestOptions, IRestResponseType, jsonTypes } from "../../types/rest.types";
@@ -278,34 +278,37 @@ export async function GetFileEx<T>(siteUrl: string, fileServerRelativeUrl: strin
     }
 
     let version = options.version;
+    let versionPart = "";
     if (isNumber(version) && version > 0 || isNotEmptyString(version)) {
-        //get content of specific version
-        let fileSiteRelativeUrl = fileServerRelativeUrl.slice(siteUrl.length - 1);
-        let versionUrl = `${siteUrl}/_vti_history/${FileVersionToVersionId(options.version)}${fileSiteRelativeUrl}`;
-        try {
-            let versionContent = await GetJson<T>(versionUrl, undefined, restOptions);
-            return { Exists: isString(versionContent), Content: versionContent };
-        } catch (e) {
-            return { Exists: false };
-        }
+        //this end point does not work on MSAL claims
+        // //get content of specific version
+        // let fileSiteRelativeUrl = fileServerRelativeUrl.slice(siteUrl.length - 1);
+        // let versionUrl = `${siteUrl}_vti_history/${FileVersionToVersionId(options.version)}${fileSiteRelativeUrl}`;
+        // try {
+        //     restOptions.jsonMetadata = jsonTypes.nometadata;
+        //     let versionContent = await GetJson<T>(versionUrl, undefined, restOptions);
+        //     return { Exists: isString(versionContent), Content: versionContent };
+        // } catch (e) {
+        //     return { Exists: false };
+        // }
+        versionPart = `/versions(${FileVersionToVersionId(options.version)})/`;
     }
-    else {
-        let fileRestUrl = GetFileRestUrl(siteUrl, fileServerRelativeUrl);
-        if (!restOptions.forceCacheUpdate && reloadCacheFileModifiedRecently(siteUrl, fileServerRelativeUrl)) {
-            restOptions.forceCacheUpdate = true;
-        }
 
-        return GetJson<T>(`${fileRestUrl}/$value`, null, restOptions).then(r => {
-            return {
-                Exists: true,
-                Content: r
-            };
-        }).catch<{ Exists: boolean; Content?: T; }>(() => {
-            return {
-                Exists: false
-            };
-        });
+    let fileRestUrl = GetFileRestUrl(siteUrl, fileServerRelativeUrl);
+    if (!restOptions.forceCacheUpdate && reloadCacheFileModifiedRecently(siteUrl, fileServerRelativeUrl)) {
+        restOptions.forceCacheUpdate = true;
     }
+
+    return GetJson<T>(`${fileRestUrl}${versionPart}/$value`, null, restOptions).then(r => {
+        return {
+            Exists: true,
+            Content: r
+        };
+    }).catch<{ Exists: boolean; Content?: T; }>(() => {
+        return {
+            Exists: false
+        };
+    });
 }
 
 /** version: 1.5 >> version ID for history */
