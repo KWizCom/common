@@ -145,7 +145,7 @@ export async function GetListItemFieldValues(siteUrl: string, listIdOrTitle: str
     return values;
 }
 
-/** Returns version array, newest version first */
+/** Returns version array, newest version first. Can get moderator comments, cannot get file check in comments */
 export async function GetListItemFieldValuesHistory(siteUrl: string, listIdOrTitle: string, itemId: number | string, fields: string[], options?: { refreshCache?: boolean; }) {
     siteUrl = GetSiteUrl(siteUrl);
 

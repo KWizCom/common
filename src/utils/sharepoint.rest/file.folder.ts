@@ -1,3 +1,4 @@
+import { GetError } from "../../exports-index";
 import { jsonStringify } from "../../helpers/json";
 import { isNotEmptyArray, isNotEmptyString, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, newGuid } from "../../helpers/typecheckers";
 import { encodeURIComponentEX, makeServerRelativeUrl, normalizeUrl } from "../../helpers/url";
@@ -309,6 +310,48 @@ export async function GetFileEx<T>(siteUrl: string, fileServerRelativeUrl: strin
             Exists: false
         };
     });
+}
+
+export interface iFileVersionInfo {
+    CheckInComment: string;
+    Created: Date;
+    /** version ID: major*512 + minor */
+    ID: number;
+    IsCurrentVersion: boolean;
+    Length: string;
+    Size: number;
+    /** site relative _vti_history link. Better use /getFile..../versions(id)/$value */
+    Url: string;
+    /** version format #.# */
+    VersionLabel: string;
+}
+/** get file version history olders version first with correct check in comment, does NOT include current version */
+export async function GetFileVersionHistory(siteUrl: string, fileServerRelativeUrl: string, options?: {
+    refreshCache?: boolean;
+}): Promise<iFileVersionInfo[]> {
+    siteUrl = GetSiteUrl(siteUrl);
+
+    options = options || {};
+
+    let restOptions: IRestOptions = {
+        allowCache: options.refreshCache !== true,
+        jsonMetadata: jsonTypes.nometadata
+    };
+
+    let fileRestUrl = GetFileRestUrl(siteUrl, fileServerRelativeUrl);
+    if (!restOptions.forceCacheUpdate && reloadCacheFileModifiedRecently(siteUrl, fileServerRelativeUrl)) {
+        restOptions.forceCacheUpdate = true;
+    }
+
+    try {
+        const result = await GetJson<{ value: iFileVersionInfo[] }>(`${fileRestUrl}/versions`, null, restOptions);
+        //Created will come in as string
+        result.value.forEach(v => v.Created = new Date(v.Created as any as string));
+        return result.value;
+    }
+    catch (e) {
+        logger.error(GetError(e));
+    }
 }
 
 /** version: 1.5 >> version ID for history */
