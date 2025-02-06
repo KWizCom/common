@@ -1498,7 +1498,7 @@ export async function GetListVersionSettings(siteUrlOrId: string, listIdOrTitle:
     }
 }
 export async function SetListVersionSettings(siteUrlOrId: string, listIdOrTitle: string, options: {
-    newSettings: Pick<iListVersionSettings, "EnableMinorVersions" | "EnableModeration">
+    newSettings: Pick<iListVersionSettings, "EnableMinorVersions" | "EnableModeration" | "DraftVersionVisibility">
 }): Promise<iListVersionSettings> {
     let siteUrl = GetSiteUrl(siteUrlOrId);
 
@@ -1523,6 +1523,11 @@ export async function SetListVersionSettings(siteUrlOrId: string, listIdOrTitle:
         if (newSettings.EnableMinorVersions) {
             if (!currentValues.EnableMinorVersions)
                 await updateProp({ EnableMinorVersions: true });
+
+            if (!isNullOrUndefined(newSettings.DraftVersionVisibility)) {
+                if (currentValues.DraftVersionVisibility !== newSettings.DraftVersionVisibility)
+                    await updateProp({ DraftVersionVisibility: newSettings.DraftVersionVisibility });
+            }
         }
         else {
             if (currentValues.EnableMinorVersions) {
