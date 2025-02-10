@@ -1,14 +1,14 @@
 import { IDictionary } from "../types/common.types";
 import { FieldTypeAsString, FieldTypes, IFieldCalculatedInfo, IFieldInfo, IFieldInfoEX, IFieldJsonSchema, IFieldTaxonomyInfo, PrincipalType, RententionLabelFieldValueType, SPBasePermissionKind, ThumbnailValueType, UrlValueType } from "../types/sharepoint.types";
 import { UserEntityValueType } from "../types/sharepoint.utils.types";
-import { waitFor, waitForWindowObject } from "./browser";
+import { isElement, waitFor, waitForWindowObject } from "./browser";
 import { firstOrNull, forEach } from "./collections.base";
 import { deleteCookie, getCookie, setCookie } from "./cookies";
 import { isValidEmail } from "./emails";
 import { jsonParse } from "./json";
 import { hasOwnProperty } from "./objects";
 import { isValidDomainLogin, normalizeGuid } from "./strings";
-import { isNotEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, isNumeric, isString, isTypeofFullNameNullOrUndefined, isTypeofFullNameUndefined, isUndefined, isValidGuid } from "./typecheckers";
+import { isNotEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber, isNumeric, isString, isTypeofFullNameFunction, isTypeofFullNameNullOrUndefined, isTypeofFullNameUndefined, isUndefined, isValidGuid } from "./typecheckers";
 import { makeServerRelativeUrl, normalizeUrl } from "./url";
 
 export const KWIZ_CONTROLLER_FIELD_NAME = "kwizcomcontrollerfield";
@@ -19,29 +19,37 @@ const MOBILE_EXPERIENCE_TEMP_COOKIE_NAME = `${MOBILE_EXPERIENCE_COOKIE_NAME}_kwi
 
 //const logger = ConsoleLogger.get("_modules/helpers/sharepoint");
 export function IsClassicPage() {
+    if (!isTypeofFullNameNullOrUndefined("_spClientSideComponentIds")) {
+        //only modern pages have the _spClientSideComponentIds object created on the page inline, not a in script that 
+        //can be loaded
+        return false;
+    }
+
     //on premises has g_spribbon but no g_Workspace
-    //can't use g_spribbon because it gets created whenever you load the init.js script    
+    //can't use g_spribbon because it gets created whenever you load the init.js script        
     if (!isUndefined(window)
         && window.document
         && document.body
         && document.body.childNodes.length
         && document.body.childNodes) {
         //only classic pages have the s4-workspace element, so try this first because it is the most reliable
-        return !!document.getElementById("s4-workspace");
-    } else if (!isUndefined((<any>window)._spWebPartComponents)) {
-        //only classic pages have the _spWebPartComponents object created on the page inline, not in a script that
-        //can be loaded
-        return true;
-    } else if (!isUndefined((<any>window)._spClientSideComponentIds)) {
-        //only modern pages have the _spClientSideComponentIds object created on the page inline, not a in script that 
-        //can be loaded
-        return false;
-    } else if (!isUndefined((<any>window).g_Workspace)) {
-        //online has g_Workspace
-        return true;
-    } else {
-        return false;
+        let s4workspaceEle = document.getElementById("s4-workspace");
+        if (isElement(s4workspaceEle)) {
+            return true;
+        }
     }
+
+    if (!isTypeofFullNameNullOrUndefined("_spWebPartComponents")
+        || !isTypeofFullNameNullOrUndefined("g_Workspace")
+        || isTypeofFullNameFunction("$_global_ie55up")
+    ) {
+        //g_Workspace = online classic pages global var that contains the worskpace element selector
+        //_spWebPartComponents = inline global var that contains web part info
+        //$_global_ie55up = global function for IE polyfills on classic pages
+        return true;
+    }    
+
+    return false;
 }
 
 export function restoreExperience() {
@@ -119,33 +127,33 @@ export function SchemaJsonToXml(json: IFieldJsonSchema): string {
     let doc = new Document();
     let fieldElm = doc.createElement("Field");
     forEach(json.Attributes, (name, value) => {
-      fieldElm.setAttribute(name, value);
+        fieldElm.setAttribute(name, value);
     });
     if (Object.keys(json.Customizations).length) {
-      let custElm = doc.createElement("Customization");
-      fieldElm.appendChild(custElm);
-      let arrElm = doc.createElement("ArrayOfProperty");
-      custElm.appendChild(arrElm);
-      forEach(json.Customizations, (name, value) => {
-        let propElm = doc.createElement("Property");
-        arrElm.appendChild(propElm);
-  
-        let nameElm = doc.createElement("Name");
-        propElm.appendChild(nameElm);
-        let valElm = doc.createElement("Value");
-        propElm.appendChild(valElm);
-        nameElm.textContent = name;
-        valElm.textContent = value;
-      });
+        let custElm = doc.createElement("Customization");
+        fieldElm.appendChild(custElm);
+        let arrElm = doc.createElement("ArrayOfProperty");
+        custElm.appendChild(arrElm);
+        forEach(json.Customizations, (name, value) => {
+            let propElm = doc.createElement("Property");
+            arrElm.appendChild(propElm);
+
+            let nameElm = doc.createElement("Name");
+            propElm.appendChild(nameElm);
+            let valElm = doc.createElement("Value");
+            propElm.appendChild(valElm);
+            nameElm.textContent = name;
+            valElm.textContent = value;
+        });
     }
     if (isNotEmptyArray(json["Choices"])) {
-      let choices = doc.createElement("CHOICES");
-      fieldElm.appendChild(choices);
-      json["Choices"].forEach(c => {
-        let choice = doc.createElement("CHOICE");
-        choice.textContent = c;
-        choices.appendChild(choice);
-      });
+        let choices = doc.createElement("CHOICES");
+        fieldElm.appendChild(choices);
+        json["Choices"].forEach(c => {
+            let choice = doc.createElement("CHOICE");
+            choice.textContent = c;
+            choices.appendChild(choice);
+        });
     }
     return fieldElm.outerHTML;
 }
