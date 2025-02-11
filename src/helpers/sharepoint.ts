@@ -25,29 +25,26 @@ export function IsClassicPage() {
         return false;
     }
 
-    //on premises has g_spribbon but no g_Workspace
-    //can't use g_spribbon because it gets created whenever you load the init.js script        
-    if (!isUndefined(window)
-        && window.document
-        && document.body
-        && document.body.childNodes.length
-        && document.body.childNodes) {
-        //only classic pages have the s4-workspace element, so try this first because it is the most reliable
+    if (!isTypeofFullNameNullOrUndefined("_spWebPartComponents")
+        || !isTypeofFullNameNullOrUndefined("g_Workspace")
+        || isTypeofFullNameFunction("$_global_ie55up")
+        || !isTypeofFullNameNullOrUndefined("_spBodyOnLoadCalled")
+    ) {
+        //_spWebPartComponents = inline global var that contains web part info
+        //g_Workspace = inline global var that contains the worskpace element selector
+        //$_global_ie55up = global function for IE polyfills on classic pages
+        //_spBodyOnLoadCalled = inline global var
+        return true;
+    }
+
+    if (!isTypeofFullNameNullOrUndefined("document.body.childNodes")
+        && document.body.childNodes.length > 0) {
+        //only classic pages have the s4-workspace element
         let s4workspaceEle = document.getElementById("s4-workspace");
         if (isElement(s4workspaceEle)) {
             return true;
         }
     }
-
-    if (!isTypeofFullNameNullOrUndefined("_spWebPartComponents")
-        || !isTypeofFullNameNullOrUndefined("g_Workspace")
-        || isTypeofFullNameFunction("$_global_ie55up")
-    ) {
-        //g_Workspace = online classic pages global var that contains the worskpace element selector
-        //_spWebPartComponents = inline global var that contains web part info
-        //$_global_ie55up = global function for IE polyfills on classic pages
-        return true;
-    }    
 
     return false;
 }
@@ -123,6 +120,7 @@ export function SchemaXmlToJson(xml: string): IFieldJsonSchema {
     } catch (e) { }
     return result;
 }
+
 export function SchemaJsonToXml(json: IFieldJsonSchema): string {
     let doc = new Document();
     let fieldElm = doc.createElement("Field");
