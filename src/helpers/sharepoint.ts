@@ -19,16 +19,16 @@ const MOBILE_EXPERIENCE_TEMP_COOKIE_NAME = `${MOBILE_EXPERIENCE_COOKIE_NAME}_kwi
 
 //const logger = ConsoleLogger.get("_modules/helpers/sharepoint");
 export function IsClassicPage() {
-    if (!isTypeofFullNameNullOrUndefined("_spClientSideComponentIds")) {
+    if (!isTypeofFullNameUndefined("_spClientSideComponentIds")) {
         //only modern pages have the _spClientSideComponentIds object created on the page inline, not a in script that 
         //can be loaded
         return false;
     }
 
-    if (!isTypeofFullNameNullOrUndefined("_spWebPartComponents")
-        || !isTypeofFullNameNullOrUndefined("g_Workspace")
+    if (!isTypeofFullNameUndefined("_spWebPartComponents")
+        || !isTypeofFullNameUndefined("g_Workspace")
         || isTypeofFullNameFunction("$_global_ie55up")
-        || !isTypeofFullNameNullOrUndefined("_spBodyOnLoadCalled")
+        || !isTypeofFullNameUndefined("_spBodyOnLoadCalled")
     ) {
         //_spWebPartComponents = inline global var that contains web part info
         //g_Workspace = inline global var that contains the worskpace element selector
