@@ -187,6 +187,20 @@ export function copyToClipboard(el: HTMLElement): boolean {
     return false;
 }
 
+export function pasteTextAtCursor(textArea: HTMLTextAreaElement | HTMLInputElement, text: string) {
+    const selectionStart = textArea.selectionStart;
+    const selectionEnd = textArea.selectionEnd;
+    const value = textArea.value;
+
+    const before = value.substring(0, selectionStart);
+    const after = value.substring(selectionEnd);
+
+    textArea.value = before + text + after;
+
+    textArea.selectionStart = selectionStart + text.length;
+    textArea.selectionEnd = selectionStart + text.length;
+}
+
 /** wraps the html in a div element and returns it */
 export function elementFromHtml(html: string) {
     var d = document.createElement("div");
@@ -1425,7 +1439,7 @@ export async function convertImageToBase64(imgEle: HTMLImageElement | SVGImageEl
                 }
             }
         }
-        
+
         let height = 0;
         let width = 0;
 
@@ -1443,12 +1457,12 @@ export async function convertImageToBase64(imgEle: HTMLImageElement | SVGImageEl
 
         let ctx = canvas.getContext("2d");
         ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = quality;        
+        ctx.imageSmoothingQuality = quality;
 
         let isCrossOrigin = !src.toLowerCase().startsWith(window.location.origin.toLowerCase());
         let crossOriginImg = new Image();
 
-        crossOriginImg.onload = () => {            
+        crossOriginImg.onload = () => {
             let dataURL: string = null;
             try {
                 ctx.drawImage(crossOriginImg, 0, 0, width, height);
@@ -1473,9 +1487,9 @@ export async function convertImageToBase64(imgEle: HTMLImageElement | SVGImageEl
         };
 
         if (isCrossOrigin === true) {
-            crossOriginImg.crossOrigin = "anonymous";            
+            crossOriginImg.crossOrigin = "anonymous";
         } else {
-            crossOriginImg.crossOrigin = "use-credentials";            
+            crossOriginImg.crossOrigin = "use-credentials";
         }
 
         crossOriginImg.src = src;
