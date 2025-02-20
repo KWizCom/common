@@ -188,6 +188,8 @@ export function copyToClipboard(el: HTMLElement): boolean {
 }
 
 export function pasteTextAtCursor(textArea: HTMLTextAreaElement | HTMLInputElement, text: string) {
+    if (isNullOrEmptyString(text)) return;
+    text = text.replace(/\r/g, '');//remove \r it messes up the cursor location when pasting with line break
     const selectionStart = textArea.selectionStart;
     const selectionEnd = textArea.selectionEnd;
     const value = textArea.value;
