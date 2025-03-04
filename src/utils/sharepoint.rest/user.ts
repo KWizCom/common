@@ -1,4 +1,4 @@
-import { firstOrNull } from "../../exports-index";
+import { filterEmptyEntries, firstOrNull, lastOrNull, normalizeGuid } from "../../exports-index";
 import { jsonStringify } from "../../helpers/json";
 import { ISPPeoplePickerControlFormEntity, IsSPPeoplePickerControlFormEntity, getPrincipalTypeFromPickerEntity, isExternalUser } from "../../helpers/sharepoint";
 import { isNotEmptyArray, isNotEmptyString, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber } from "../../helpers/typecheckers";
@@ -506,15 +506,53 @@ export async function GroupIncludesAllUsers(siteUrl: string, groupId: number) {
     }
 }
 
+/** return array of AAD group IDs, guid, normalized */
+export async function GetCurrentUserADGroupMemberships(siteUrl: string) {
+    let url = `${GetRestBaseUrl(siteUrl)}/SP.Publishing.SitePageService.GetCurrentUserMemberships`;
+    try {
+        let result = await GetJson<{ value: string[] }>(url, null, { jsonMetadata: jsonTypes.nometadata });
+        return isNotEmptyArray(result.value) ? result.value.map(id => normalizeGuid(id)) : [];
+    } catch (e) {
+        logger.error(e);
+        return [];
+    }
+}
+
 /** checks users groups, then checks for groups that contains all users and that the user is not an external one */
 export async function IsUserMemberOfGroup(siteUrl: string, user: { LoginName: string; Groups?: IUserGroupInfo[] }, group: { Id: number, LoginName: string }) {
     if (isNotEmptyArray(user.Groups)) {
+        //search user groups for the group by title or id
         const found = firstOrNull(user.Groups, g => (isNotEmptyString(group.LoginName) && g.Title === group.LoginName) || (isNumber(group.Id) && g.Id === group.Id));
         if (found)
             return true;
     }
-    //groups granted by all-users special permission will not show up in the user's groups - so test manually.
-    const includesAllUsers = GroupIncludesAllUsers(siteUrl, group.Id);
-    const isCurrentUserExternal = isExternalUser(user.LoginName);
-    return includesAllUsers && !isCurrentUserExternal;
+
+    const groupInfo = await GetGroup(siteUrl, group.Id, { expandUsers: true });
+    if (!isNullOrUndefined(groupInfo)) {
+        if (isNotEmptyArray(groupInfo.Users)) {
+            //search group users memberships directly
+            const found = firstOrNull(groupInfo.Users, u => (isNotEmptyString(user.LoginName) && u.LoginName === user.LoginName));
+            if (found)
+                return true;
+
+            //if we looking for current user - we can check GetCurrentUserADGroupMemberships
+            let currentUser = await GetCurrentUser(siteUrl);
+            if (currentUser.LoginName === user.LoginName) {
+                //get user's aad groups
+                const UserAADGroups = await GetCurrentUserADGroupMemberships(siteUrl);
+                //convert group's users to guids
+                const groupUserLoginsSplit = filterEmptyEntries(groupInfo.Users.map(u => lastOrNull(u.LoginName.split('|'))));
+                //see if any of the group members is a guid that is in the user's aad groups
+                const found = firstOrNull(groupUserLoginsSplit, u => UserAADGroups.includes(normalizeGuid(u)));
+                if (found)
+                    return true;
+
+            }
+        }
+        //groups that contain all-users special permission will not show up in the user's groups or anywhere else - so test manually.
+        const includesAllUsers = GroupIncludesAllUsers(siteUrl, group.Id);
+        const isCurrentUserExternal = isExternalUser(user.LoginName);
+        return includesAllUsers && !isCurrentUserExternal;
+    }
+    return false;
 }
