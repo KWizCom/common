@@ -158,28 +158,47 @@ export function GetList(siteUrlOrId: string, listIdOrTitle: string, options?: {
     includeContentTypes?: boolean;
     includeRootFolder?: boolean;
     includeEventReceivers?: boolean;
-}): Promise<iList> {
+}, refreshCache = false): Promise<iList> {
     let siteUrl = GetSiteUrl(siteUrlOrId);
 
-    if (isNullOrEmptyString(listIdOrTitle)) return null;
+    if (isNullOrEmptyString(listIdOrTitle)) {
+        return null;
+    }
 
     return GetJson<{ d: iList; }>(GetListRestUrl(siteUrl, listIdOrTitle) + `?$select=${LIST_SELECT}&$expand=${LIST_EXPAND}`, null, { allowCache: true })
         .then(async r => {
             let list = r.d;
             if (options) {
-                if (options.includeViews)
-                    list.Views = await GetListViews(siteUrl, listIdOrTitle, options.viewOptions);
-                if (options.includeContentTypes)
-                    list.ContentTypes = await GetListContentTypes(siteUrl, listIdOrTitle);
-                if (options.includeRootFolder)
-                    list.RootFolder = await GetListRootFolder(siteUrl, listIdOrTitle);
-                if (options.includeEventReceivers)
-                    list.EventReceivers = await GetListEventReceivers(siteUrl, listIdOrTitle);
+                let promises = [];
+
+                if (options.includeViews) {
+                    promises.push(GetListViews(siteUrl, listIdOrTitle, options.viewOptions, refreshCache).then((r) => {
+                        list.Views = r;
+                    }))
+                }
+                if (options.includeContentTypes) {
+                    promises.push(GetListContentTypes(siteUrl, listIdOrTitle, null, refreshCache).then((r) => {
+                        list.ContentTypes = r;
+                    }));
+                }
+                if (options.includeRootFolder) {
+                    promises.push(GetListRootFolder(siteUrl, listIdOrTitle).then((r) => {
+                        list.RootFolder = r;
+                    }));
+                }
+                if (options.includeEventReceivers) {
+                    promises.push(GetListEventReceivers(siteUrl, listIdOrTitle, refreshCache).then((r) => {
+                        list.EventReceivers = r;
+                    }));
+                }
+
+                if (promises.length > 0) {
+                    await Promise.all(promises);
+                }
             }
 
             if (list.EffectiveBasePermissions
-                && (isString(list.EffectiveBasePermissions.High)
-                    || isString(list.EffectiveBasePermissions.Low))) {
+                && (isString(list.EffectiveBasePermissions.High) || isString(list.EffectiveBasePermissions.Low))) {
                 list.EffectiveBasePermissions = {
                     High: Number(list.EffectiveBasePermissions.High),
                     Low: Number(list.EffectiveBasePermissions.Low)
@@ -720,13 +739,13 @@ export async function DeleteField(siteUrl: string, listIdOrTitle: string, fieldI
 }
 
 export interface IListViewOptions { includeViewFields?: boolean; }
-export function GetListViews(siteUrl: string, listIdOrTitle: string, options?: IListViewOptions): Promise<iListView[]> {
+export function GetListViews(siteUrl: string, listIdOrTitle: string, options?: IListViewOptions, refreshCache = false): Promise<iListView[]> {
     siteUrl = GetSiteUrl(siteUrl);
 
     return GetJson<{
         value: iListView[];
     }>(GetListRestUrl(siteUrl, listIdOrTitle) + `/views?$select=Title,Id,ServerRelativeUrl,RowLimit,Paged,ViewQuery,ListViewXml,PersonalView,MobileView,MobileDefaultView,Hidden,DefaultView,ReadOnlyView${options && options.includeViewFields ? "&$expand=ViewFields" : ""}`,
-        null, { allowCache: true, jsonMetadata: jsonTypes.nometadata })
+        null, { allowCache: refreshCache !== true, jsonMetadata: jsonTypes.nometadata })
         .then(r => {
             let views = r.value;
             if (isNotEmptyArray(views)) {
@@ -742,7 +761,7 @@ export function GetListViews(siteUrl: string, listIdOrTitle: string, options?: I
         .catch<iListView[]>(() => null);
 }
 
-export function GetListViewsSync(siteUrl: string, listIdOrTitle: string): iListView[] {
+export function GetListViewsSync(siteUrl: string, listIdOrTitle: string, refreshCache = false): iListView[] {
     siteUrl = GetSiteUrl(siteUrl);
 
     let result = GetJsonSync<{
@@ -750,7 +769,7 @@ export function GetListViewsSync(siteUrl: string, listIdOrTitle: string): iListV
             results: iListView[];
         };
     }>(GetListRestUrl(siteUrl, listIdOrTitle) + `/views`,
-        null, { allowCache: true });
+        null, { allowCache: refreshCache !== true });
     if (result.success) {
         let views = result && result.result && result.result.d && result.result.d.results;
         if (isNotEmptyArray(views)) {
