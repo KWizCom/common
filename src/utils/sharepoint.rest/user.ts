@@ -1,3 +1,4 @@
+import { firstOrNull } from "../../exports-index";
 import { jsonStringify } from "../../helpers/json";
 import { ISPPeoplePickerControlFormEntity, IsSPPeoplePickerControlFormEntity, getPrincipalTypeFromPickerEntity } from "../../helpers/sharepoint";
 import { isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber } from "../../helpers/typecheckers";
@@ -489,4 +490,11 @@ export async function SetGroupOwner(siteUrl: string, groupId: number, ownerId: n
             return false;
         }
     }
+}
+
+export async function GroupIncludesAllUsers(siteUrl?: string, groupId?: number) {
+    const groupInfo = await GetGroup(siteUrl, groupId, { expandUsers: true });
+    //special memebr called spo-grid-all-users/{tenant-id} will be added, its not in the AAD or anywhere else.
+    const includesAllUsers = !isNullOrUndefined(firstOrNull(groupInfo.Users, u => (u.LoginName || "").indexOf("|spo-grid-all-users/") >= 0));
+    return includesAllUsers;
 }
