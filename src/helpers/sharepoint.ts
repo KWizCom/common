@@ -792,5 +792,6 @@ export function isSPPageContextInfoReadySync() {
 }
 
 export function isExternalUser(loginName: string) {
+    if (isNullOrEmptyString(loginName)) return false;
     return loginName.indexOf("#ext#@") >= 0;
 }

@@ -1,11 +1,11 @@
 import { firstOrNull } from "../../exports-index";
 import { jsonStringify } from "../../helpers/json";
-import { ISPPeoplePickerControlFormEntity, IsSPPeoplePickerControlFormEntity, getPrincipalTypeFromPickerEntity } from "../../helpers/sharepoint";
-import { isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber } from "../../helpers/typecheckers";
+import { ISPPeoplePickerControlFormEntity, IsSPPeoplePickerControlFormEntity, getPrincipalTypeFromPickerEntity, isExternalUser } from "../../helpers/sharepoint";
+import { isNotEmptyArray, isNotEmptyString, isNullOrEmptyArray, isNullOrEmptyString, isNullOrNaN, isNullOrUndefined, isNumber } from "../../helpers/typecheckers";
 import { encodeURIComponentEX } from "../../helpers/url";
 import { contentTypes, jsonTypes } from "../../types/rest.types";
 import { ISiteGroupInfo, PrincipalType } from "../../types/sharepoint.types";
-import { IGroupInfo, IUserInfo } from "../../types/sharepoint.utils.types";
+import { IGroupInfo, IUserGroupInfo, IUserInfo } from "../../types/sharepoint.utils.types";
 import { ConsoleLogger } from "../consolelogger";
 import { GetJson, GetJsonSync, longLocalCache, shortLocalCache } from "../rest";
 import { GetRestBaseUrl, GetSiteUrl } from "./common";
@@ -492,9 +492,29 @@ export async function SetGroupOwner(siteUrl: string, groupId: number, ownerId: n
     }
 }
 
-export async function GroupIncludesAllUsers(siteUrl?: string, groupId?: number) {
-    const groupInfo = await GetGroup(siteUrl, groupId, { expandUsers: true });
-    //special memebr called spo-grid-all-users/{tenant-id} will be added, its not in the AAD or anywhere else.
-    const includesAllUsers = !isNullOrUndefined(firstOrNull(groupInfo.Users, u => (u.LoginName || "").indexOf("|spo-grid-all-users/") >= 0));
-    return includesAllUsers;
+export async function GroupIncludesAllUsers(siteUrl: string, groupId: number) {
+    try {
+        if (isNullOrNaN(groupId)) return false;
+        const groupInfo = await GetGroup(siteUrl, groupId, { expandUsers: true });
+        if (isNullOrUndefined(groupInfo)) return false;
+        //special memebr called spo-grid-all-users/{tenant-id} will be added, its not in the AAD or anywhere else.
+        const includesAllUsers = !isNullOrUndefined(firstOrNull(groupInfo.Users, u => (u.LoginName || "").indexOf("|spo-grid-all-users/") >= 0));
+        return includesAllUsers;
+    } catch (e) {
+        logger.error(e);
+        return false;
+    }
+}
+
+/** checks users groups, then checks for groups that contains all users and that the user is not an external one */
+export async function IsUserMemberOfGroup(siteUrl: string, user: { LoginName: string; Groups?: IUserGroupInfo[] }, group: { Id: number, LoginName: string }) {
+    if (isNotEmptyArray(user.Groups)) {
+        const found = firstOrNull(user.Groups, g => (isNotEmptyString(group.LoginName) && g.Title === group.LoginName) || (isNumber(group.Id) && g.Id === group.Id));
+        if (found)
+            return true;
+    }
+    //groups granted by all-users special permission will not show up in the user's groups - so test manually.
+    const includesAllUsers = GroupIncludesAllUsers(siteUrl, group.Id);
+    const isCurrentUserExternal = isExternalUser(user.LoginName);
+    return includesAllUsers && !isCurrentUserExternal;
 }
