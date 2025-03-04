@@ -519,10 +519,10 @@ export async function GetCurrentUserADGroupMemberships(siteUrl: string) {
 }
 
 /** checks users groups, then checks for groups that contains all users and that the user is not an external one */
-export async function IsUserMemberOfGroup(siteUrl: string, user: { LoginName: string; Groups?: IUserGroupInfo[] }, group: { Id: number, LoginName: string }) {
+export async function IsUserMemberOfGroup(siteUrl: string, user: { LoginName: string; Id: number; Groups?: IUserGroupInfo[] }, group: { Id: number, LoginName: string }) {
     if (isNotEmptyArray(user.Groups)) {
         //search user groups for the group by title or id
-        const found = firstOrNull(user.Groups, g => (isNotEmptyString(group.LoginName) && g.Title === group.LoginName) || (isNumber(group.Id) && g.Id === group.Id));
+        const found = firstOrNull(user.Groups, userGroup => (isNotEmptyString(group.LoginName) && userGroup.Title === group.LoginName) || (isNumber(group.Id) && userGroup.Id === group.Id));
         if (found)
             return true;
     }
@@ -531,7 +531,7 @@ export async function IsUserMemberOfGroup(siteUrl: string, user: { LoginName: st
     if (!isNullOrUndefined(groupInfo)) {
         if (isNotEmptyArray(groupInfo.Users)) {
             //search group users memberships directly
-            const found = firstOrNull(groupInfo.Users, u => (isNotEmptyString(user.LoginName) && u.LoginName === user.LoginName));
+            const found = firstOrNull(groupInfo.Users, groupUser => (isNotEmptyString(user.LoginName) && groupUser.LoginName === user.LoginName) || (isNumber(user.Id) && groupUser.Id === user.Id));
             if (found)
                 return true;
 
@@ -540,17 +540,18 @@ export async function IsUserMemberOfGroup(siteUrl: string, user: { LoginName: st
             if (currentUser.LoginName === user.LoginName) {
                 //get user's aad groups
                 const UserAADGroups = await GetCurrentUserADGroupMemberships(siteUrl);
-                //convert group's users to guids
-                const groupUserLoginsSplit = filterEmptyEntries(groupInfo.Users.map(u => lastOrNull(u.LoginName.split('|'))));
-                //see if any of the group members is a guid that is in the user's aad groups
-                const found = firstOrNull(groupUserLoginsSplit, u => UserAADGroups.includes(normalizeGuid(u)));
-                if (found)
-                    return true;
-
+                if (isNotEmptyArray(UserAADGroups)) {
+                    //convert group's users to guids
+                    const groupUserLoginsSplit = filterEmptyEntries(groupInfo.Users.map(u => lastOrNull(u.LoginName.split('|'))));
+                    //see if any of the group members is a guid that is in the user's aad groups
+                    const found = firstOrNull(groupUserLoginsSplit, u => UserAADGroups.includes(normalizeGuid(u)));
+                    if (found)
+                        return true;
+                }
             }
         }
         //groups that contain all-users special permission will not show up in the user's groups or anywhere else - so test manually.
-        const includesAllUsers = GroupIncludesAllUsers(siteUrl, group.Id);
+        const includesAllUsers = await GroupIncludesAllUsers(siteUrl, group.Id);
         const isCurrentUserExternal = isExternalUser(user.LoginName);
         return includesAllUsers && !isCurrentUserExternal;
     }
