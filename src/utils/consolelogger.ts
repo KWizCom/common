@@ -1,9 +1,9 @@
 import { BuildNumber, ReleaseStatus } from "../_dependencies";
 import { getSecondsElapsed } from "../helpers/date";
 import { consoleLoggerFilter, isDebug } from "../helpers/debug";
-import { getGlobal } from "../helpers/objects";
+import { getGlobal, jsonClone } from "../helpers/objects";
 import { padLeft, padRight } from "../helpers/strings";
-import { isFunction, isNullOrEmptyString, isNumber, isNumeric, isString } from "../helpers/typecheckers";
+import { isFunction, isNullOrEmptyString, isNullOrUndefined, isNumber, isNumeric, isString } from "../helpers/typecheckers";
 import { IDictionary } from "../types/common.types";
 
 const DEFAULT_LOGGER_NAME = "DEFAULT";
@@ -37,6 +37,8 @@ export type LoggerContext = {
     prefix?: string;
 };
 
+type logMessageValue = string | { lable: string, value: Object };
+type logMessage = { seconds: number, message: logMessageValue };
 export class ConsoleLogger {
     public context: LoggerContext;
 
@@ -53,7 +55,7 @@ export class ConsoleLogger {
             console.debug(`${ConsoleLogger.commonPrefix()} KWIZ build ${ReleaseStatus}.${BuildNumber}`);
         }
 
-        return loggers[name] || (loggers[name] = new ConsoleLogger({ name: name, prefix:prefix }));
+        return loggers[name] || (loggers[name] = new ConsoleLogger({ name: name, prefix: prefix }));
     }
 
     private static _getGlobal() {
@@ -216,43 +218,37 @@ export class ConsoleLogger {
         }
     }
 
-    public groupSync<ReturnType>(label: string, renderContent: (log: (message: string) => void) => ReturnType, options?: {
+    public groupSync<ReturnType>(label: string, renderContent: (log: (message: logMessageValue) => void) => ReturnType, options?: {
         expand?: boolean;
         /** do not write to log */
         supress?: boolean;
     }) {
         if (isNullOrEmptyString(label)) label = "SyncGroup";
-        let { logMessages, start, lastMessage } = this.$startGroup();
+        let { logMessages, start, logMessage } = this.$startGroup();
 
         let result: ReturnType;
         try {
-            result = renderContent(message => {
-                logMessages.push({ message: message, seconds: getSecondsElapsed(lastMessage) });
-                lastMessage = new Date();
-            });
+            result = renderContent(logMessage);
         } catch (e) {
-            logMessages.push({ message: `Unhandled exception: ${e}`, seconds: getSecondsElapsed(lastMessage) });
+            logMessage(`Unhandled exception: ${e}`);
             throw this.$finishGroup(label, e, start, logMessages, options);
         }
 
         return this.$finishGroup(label, result, start, logMessages, options);
     }
-    public async groupAsync<ReturnType>(label: string, renderContent: (log: (message: string) => void) => Promise<ReturnType>, options?: {
+    public async groupAsync<ReturnType>(label: string, renderContent: (log: (message: logMessageValue) => void) => Promise<ReturnType>, options?: {
         expand?: boolean;
         /** do not write to log */
         supress?: boolean;
     }) {
         if (isNullOrEmptyString(label)) label = "AsyncGroup";
-        let { logMessages, start, lastMessage } = this.$startGroup();
+        let { logMessages, start, logMessage } = this.$startGroup();
 
         let result: ReturnType;
         try {
-            result = await renderContent(message => {
-                logMessages.push({ message: message, seconds: getSecondsElapsed(lastMessage) });
-                lastMessage = new Date();
-            });
+            result = await renderContent(logMessage);
         } catch (e) {
-            logMessages.push({ message: `Unhandled exception: ${e}`, seconds: getSecondsElapsed(lastMessage) });
+            logMessage(`Unhandled exception: ${e}`);
             throw this.$finishGroup(label, e, start, logMessages, options);
         }
 
@@ -260,13 +256,23 @@ export class ConsoleLogger {
     }
 
     private $startGroup() {
-        let logMessages: { seconds: number, message: string }[] = [];
+        let logMessages: logMessage[] = [];
 
         let start = new Date();
         let lastMessage = start;
-        return { logMessages, start, lastMessage };
+
+        let logMessage = (message: logMessageValue) => {
+            logMessages.push({
+                message: isString(message) || isNullOrUndefined(message)
+                    ? message
+                    : jsonClone(message), seconds: getSecondsElapsed(lastMessage)
+            });
+            lastMessage = new Date();
+        };
+
+        return { logMessage, logMessages, start };
     }
-    private $finishGroup<ReturnType>(label: string, result: ReturnType, start: Date, logMessages: { seconds: number, message: string }[], options?: {
+    private $finishGroup<ReturnType>(label: string, result: ReturnType, start: Date, logMessages: logMessage[], options?: {
         expand?: boolean;
         /** do not write to log */
         supress?: boolean;
@@ -284,7 +290,14 @@ export class ConsoleLogger {
         else return result;
 
         //drop directly, without a prefix, in the group
-        logMessages.forEach(m => console.debug(`(${m.seconds}s) ${m.message}`));
+        logMessages.forEach(m => {
+            if (isString(m.message))
+                console.debug(`(${m.seconds}s) ${m.message}`);
+            else {
+                console.debug(`(${m.seconds}s) ${m.message.lable}`);
+                console.dir(m.message.value);
+            }
+        });
         console.groupEnd();
         return result;
     }
