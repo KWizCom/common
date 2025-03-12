@@ -37,7 +37,7 @@ export type LoggerContext = {
     prefix?: string;
 };
 
-type logMessageValue = string | { lable: string, value: Object };
+type logMessageValue = string | { label: string, value: Object };
 type logMessage = { seconds: number, message: logMessageValue };
 export class ConsoleLogger {
     public context: LoggerContext;
@@ -294,7 +294,7 @@ export class ConsoleLogger {
             if (isString(m.message))
                 console.debug(`(${m.seconds}s) ${m.message}`);
             else {
-                console.debug(`(${m.seconds}s) ${m.message.lable}`);
+                console.debug(`(${m.seconds}s) ${m.message.label}`);
                 console.dir(m.message.value);
             }
         });
