@@ -53,3 +53,11 @@ export enum SPFxAuthTokenType {
     Graph,
     MySite
 }
+
+export interface SPFxAuthToken {
+    access_token: string;
+    expires_on: string;
+    resource: string;
+    scope: string;
+    token_type: string;
+}
