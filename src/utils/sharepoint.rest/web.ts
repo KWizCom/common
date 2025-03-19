@@ -77,7 +77,7 @@ export function GetTenantId() {
     }
 
     let info = AutoDiscoverTenantInfo(true);
-    if(!isNullOrUndefined(info) && isValidGuid(info.idOrName)){
+    if (!isNullOrUndefined(info) && isValidGuid(info.idOrName)) {
         return normalizeGuid(info.idOrName);
     }
 

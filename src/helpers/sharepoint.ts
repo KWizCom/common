@@ -790,3 +790,8 @@ export async function isSPPageContextInfoReady() {
 export function isSPPageContextInfoReadySync() {
     return !isTypeofFullNameNullOrUndefined("_spPageContextInfo");
 }
+
+export function isExternalUser(loginName: string) {
+    if (isNullOrEmptyString(loginName)) return false;
+    return loginName.indexOf("#ext#@") >= 0;
+}
