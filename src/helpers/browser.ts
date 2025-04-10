@@ -1310,6 +1310,12 @@ export function DisableAnchorIntercept(link: HTMLAnchorElement) {
 export function DisableAnchorInterceptInHtml(html: string) {
     return html.replace(/<a /g, `<a ${DisableAnchorInterceptAttribute}="${DisableAnchorInterceptValue}" `);
 }
+/** adding the disable attribute to all a links in the container that do not already have them. returning the number of links that were disabled (not ones that were already disabled before) */
+export function DisableAnchorInterceptInElement(container: ParentNode) {
+    var links = container.querySelectorAll<HTMLAnchorElement>(`a:not([${DisableAnchorInterceptAttribute}='${DisableAnchorInterceptValue}'])`);
+    links.forEach(link => DisableAnchorIntercept(link));
+    return links.length;
+}
 
 export function isChildOf(node: HTMLElement, parent: {
     /** parent has one of those classes */
