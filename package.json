@@ -33,7 +33,8 @@
         "npm-v-major": "npm version major && git push origin main:main && git push --tags",
         "___do_not_use_npm-publish": "npm publish --access public",
         "reset-repo": "git fetch origin && git reset --hard origin/main",
-        "reindex-project": "cti create ./src -i _dependencies -w -b -n -o exports-index.ts && node fix-folder-imports.js"
+        "reindex-project": "cti create ./src -i _dependencies -w -b -n -o exports-index.ts && node fix-folder-imports.js",
+        "clear-npm-cache": "npm cache clean --force"
     },
     "repository": {
         "type": "git",
