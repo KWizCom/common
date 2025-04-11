@@ -6,7 +6,7 @@ To get started, configure our modules to your project by calling config:
 
 ```
 import { config } from "@kwiz/common";
-export const { logger: GetLogger } = config({
+export const { GetLogger } = config({
     BuildNumber: BuildNumber,
     //send true to have verbose logs and turn on debug mode
     IsLocalDev: IsLocalDev,

@@ -12,6 +12,8 @@ export function config(params: {
         return ConsoleLogger.get(name, params.ProjectName);
     }
     return {
+        GetLogger,
+        /** @deprecated exported as GetLogger, which is how is used anyways  */
         logger: GetLogger
     }
 }
